@@ -1,14 +1,15 @@
-﻿namespace LibraryManagementSystem.API.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BaseLibrary.Entities
 {
-    public class Penalty : BaseEntity
+    public class Reservation : BaseEntity
     {
         public int UserId { get; set; }
         public User User { get; set; }
         public int BookId { get; set; }
         public Book Book { get; set; }
         public DateTime DueDate { get; set; } = DateTime.UtcNow;
-        public decimal Amount { get; set; }
-        public bool IsPaid { get; set; } = false;
-        public string Reason { get; set; }
+        [MaxLength(10)]
+        public string Status { get; set; }
     }
 }

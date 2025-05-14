@@ -60,9 +60,9 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LibraryManagementSystem.API.DTOs;
-using LibraryManagementSystem.API.Entities;
-using LibraryManagementSystem.API.Data;
+using BaseLibrary.Entities;
+using BaseLibrary.DTOs;
+using ServerLibrary.Data;
 
 [ApiController]
 [Route("api/[controller]")]

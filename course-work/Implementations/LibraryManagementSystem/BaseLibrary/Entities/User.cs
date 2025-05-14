@@ -1,17 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace LibraryManagementSystem.API.Entities
+namespace BaseLibrary.Entities
 {
-    public class User :BaseEntity
+    public class User : BaseEntity
     {
         //[MaxLength(50)]
         public required string FullName { get; set; }
         [MaxLength(50)]
         public string Address { get; set; }
         public required string Username { get; set; }
-       //public required string Password { get; set; }
+        //public required string Password { get; set; }
         public required string PasswordHash { get; set; }
         [EmailAddress]
         public string Email { get; set; }
@@ -19,8 +17,10 @@ namespace LibraryManagementSystem.API.Entities
 
         [Required]
         [MaxLength(20)]
-        public string Role { get; set; } 
+        public string Role { get; set; }
 
+        public string? ImageUrl { get; set; }
+        public string? Description { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public ICollection<Penalty> Penalties { get; set; }
         public ICollection<Reservation> Reservations { get; set; }

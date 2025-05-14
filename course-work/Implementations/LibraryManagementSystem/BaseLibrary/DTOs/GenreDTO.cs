@@ -1,4 +1,4 @@
-﻿namespace LibraryManagementSystem.API.DTOs
+﻿namespace BaseLibrary.DTOs
 {
     public class GenreDTO
     {

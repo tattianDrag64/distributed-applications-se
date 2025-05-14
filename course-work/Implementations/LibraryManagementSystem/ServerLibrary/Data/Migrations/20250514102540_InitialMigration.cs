@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace LibraryManagementSystem.API.Migrations
+namespace ServerLibrary.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class implementmigration : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -60,6 +60,8 @@ namespace LibraryManagementSystem.API.Migrations
                     Email = table.Column<string>(type: "varchar(100)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "varchar(12)", nullable: false),
                     Role = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -205,8 +207,8 @@ namespace LibraryManagementSystem.API.Migrations
                 columns: new[] { "Id", "Biography", "CreatedAt", "DateOfBirth", "ImageUrl", "Name", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, "British author", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6745), new DateTime(1965, 7, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "J.K. Rowling", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6745) },
-                    { 2, "Science fiction author", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6749), new DateTime(1920, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Isaac Asimov", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6749) }
+                    { 1, "British author", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7110), new DateTime(1965, 7, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "J.K. Rowling", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7110) },
+                    { 2, "Science fiction author", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7114), new DateTime(1920, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Isaac Asimov", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7114) }
                 });
 
             migrationBuilder.InsertData(
@@ -214,18 +216,18 @@ namespace LibraryManagementSystem.API.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "Name", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6449), "Fantasy books", "Fantasy", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6453) },
-                    { 2, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6457), "Sci-fi books", "Science Fiction", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6457) },
-                    { 3, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6458), "Romantic novels", "Romance", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6458) }
+                    { 1, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(6930), "Fantasy books", "Fantasy", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(6933) },
+                    { 2, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(6937), "Sci-fi books", "Science Fiction", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(6937) },
+                    { 3, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(6938), "Romantic novels", "Romance", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(6939) }
                 });
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Address", "CreatedAt", "Email", "FullName", "PasswordHash", "PhoneNumber", "Role", "UpdatedAt", "Username" },
+                columns: new[] { "Id", "Address", "CreatedAt", "Description", "Email", "FullName", "ImageUrl", "PasswordHash", "PhoneNumber", "Role", "UpdatedAt", "Username" },
                 values: new object[,]
                 {
-                    { 1, "123 Main St", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6808), "alice@example.com", "Alice Johnson", "hashedpassword", "1234567890", "User", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6805), "alice" },
-                    { 2, "456 Maple Ave", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6811), "bob@example.com", "Bob Smith", "hashedpassword", "0987654321", "User", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6810), "bob" }
+                    { 1, "123 Main St", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7166), null, "alice@example.com", "Alice Johnson", null, "hashedpassword", "1234567890", "User", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7164), "alice" },
+                    { 2, "456 Maple Ave", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7169), null, "bob@example.com", "Bob Smith", null, "hashedpassword", "0987654321", "User", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7168), "bob" }
                 });
 
             migrationBuilder.InsertData(
@@ -233,8 +235,8 @@ namespace LibraryManagementSystem.API.Migrations
                 columns: new[] { "Id", "AuthorId", "AvailableCopies", "BookCode", "CoverImageUrl", "CreatedAt", "Description", "GenreId", "ISBN", "Language", "PageCount", "PublishedDate", "Title", "TotalCopies", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, 1, 5, "1001", "https://example.com/harrypotter.jpg", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6771), "A young wizard's journey begins.", 1, 9780747532699L, "English", 223, new DateTime(1997, 6, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), "Harry Potter and the Philosopher's Stone", 5, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6772) },
-                    { 2, 2, 3, "1002", "https://example.com/foundation.jpg", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6776), "The story of the Galactic Empire's fall and rebirth.", 2, 9780553293357L, "English", 255, new DateTime(1951, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Foundation", 3, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6776) }
+                    { 1, 1, 5, "1001", "https://example.com/harrypotter.jpg", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7134), "A young wizard's journey begins.", 1, 9780747532699L, "English", 223, new DateTime(1997, 6, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), "Harry Potter and the Philosopher's Stone", 5, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7135) },
+                    { 2, 2, 3, "1002", "https://example.com/foundation.jpg", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7139), "The story of the Galactic Empire's fall and rebirth.", 2, 9780553293357L, "English", 255, new DateTime(1951, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Foundation", 3, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7139) }
                 });
 
             migrationBuilder.InsertData(
@@ -242,8 +244,8 @@ namespace LibraryManagementSystem.API.Migrations
                 columns: new[] { "Id", "BookId", "CreatedAt", "DueDate", "Status", "UpdatedAt", "UserId" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6846), new DateTime(2025, 5, 27, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6840), "Reserved", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6847), 1 },
-                    { 2, 2, new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6850), new DateTime(2025, 5, 27, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6849), "Reserved", new DateTime(2025, 5, 13, 18, 30, 37, 485, DateTimeKind.Utc).AddTicks(6851), 2 }
+                    { 1, 1, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7202), new DateTime(2025, 5, 28, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7195), "Reserved", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7202), 1 },
+                    { 2, 2, new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7209), new DateTime(2025, 5, 28, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7208), "Reserved", new DateTime(2025, 5, 14, 10, 25, 39, 668, DateTimeKind.Utc).AddTicks(7209), 2 }
                 });
 
             migrationBuilder.CreateIndex(

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LibraryManagementSystem.API.Entities
+namespace BaseLibrary.Entities
 {
     public class Genre : BaseEntity
     {
@@ -8,6 +8,6 @@ namespace LibraryManagementSystem.API.Entities
         public string Name { get; set; }
         [MaxLength(1000)]
         public string Description { get; set; }
-        public ICollection<Book> Books { get; set; } 
+        public ICollection<Book> Books { get; set; }
     }
 }

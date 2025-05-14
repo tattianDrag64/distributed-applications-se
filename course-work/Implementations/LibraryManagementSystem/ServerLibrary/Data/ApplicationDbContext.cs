@@ -1,7 +1,7 @@
-﻿using LibraryManagementSystem.API.Entities;
+﻿using BaseLibrary.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace LibraryManagementSystem.API.Data
+namespace ServerLibrary.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -16,7 +16,7 @@ namespace LibraryManagementSystem.API.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Genre> Genres { get; set; }
 
-        public ApplicationDbContext CreateDbContext(string[] args)
+        public static ApplicationDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-CNVLSQN;Database=LibraryManagementSystemDB;Trusted_Connection=True;TrustServerCertificate=True;");

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LibraryManagementSystem.API.Entities
+namespace BaseLibrary.Entities
 {
     public class Book : BaseEntity
     {

@@ -8,13 +8,13 @@ namespace LibraryManagementSystem.API.Entities
         public required string Title { get; set; }
         [MaxLength(1000)]
         public string Description { get; set; }
-        [MaxLength(13)]
-        public string ISBN { get; set; }
+        public long ISBN { get; set; }
         [MaxLength(10)]
         public required string BookCode { get; set; }
         public DateTime PublishedDate { get; set; }
         public int PageCount { get; set; }
-        [MaxLength(20)]
+
+        [MaxLength(50)]
         public string Language { get; set; }
         public string CoverImageUrl { get; set; }
         public int AuthorId { get; set; }

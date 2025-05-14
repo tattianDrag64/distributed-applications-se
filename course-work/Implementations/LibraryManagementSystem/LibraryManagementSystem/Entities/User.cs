@@ -6,7 +6,7 @@ namespace LibraryManagementSystem.API.Entities
 {
     public class User :BaseEntity
     {
-        [MaxLength(50)]
+        //[MaxLength(50)]
         public required string FullName { get; set; }
         [MaxLength(50)]
         public string Address { get; set; }

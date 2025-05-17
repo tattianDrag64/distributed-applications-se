@@ -1,4 +1,7 @@
-﻿namespace BaseLibrary.DTOs
+﻿using BaseLibrary.Entities;
+using System.ComponentModel.DataAnnotations;
+
+namespace BaseLibrary.DTOs
 {
     public class BookDTO
     {
@@ -11,8 +14,8 @@
         public int PageCount { get; set; }
         public string Language { get; set; }
         public string CoverImageUrl { get; set; }
-        public int AuthorId { get; set; }
-        public int GenreId { get; set; }
+        public string AuthorName { get; set; } = null!;
+        public string GenreName { get; set; } = null!;
         public int TotalCopies { get; set; }
         public int AvailableCopies { get; set; }
     }

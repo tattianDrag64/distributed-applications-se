@@ -21,6 +21,8 @@ namespace BaseLibrary.Entities
 
         public string? ImageUrl { get; set; }
         public string? Description { get; set; }
+        public int TotalReadBooks { get; set; } = 0;
+
         public ICollection<Review> Reviews { get; set; }
         public ICollection<Penalty> Penalties { get; set; }
         public ICollection<Reservation> Reservations { get; set; }

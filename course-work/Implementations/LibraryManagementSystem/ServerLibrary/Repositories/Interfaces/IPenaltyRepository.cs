@@ -9,6 +9,6 @@ namespace ServerLibrary.Repositories.Interfaces
 {
     public interface IPenaltyRepository : IRepository<Penalty>
     {
-        Task<IEnumerable<Penalty>> GetPenaltiesByUserIdAsync(Guid userId);
+        Task<IEnumerable<Penalty>> GetPenaltiesByUserIdAsync(int userId);
     }
 }

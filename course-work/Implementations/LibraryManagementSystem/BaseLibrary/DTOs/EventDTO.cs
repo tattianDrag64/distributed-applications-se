@@ -10,13 +10,13 @@ namespace BaseLibrary.DTOs
 {
     public class EventDTO
     {
-        public int id { get; set; }
+        //public int id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
 
         [Required]
         public DateTime EventDate { get; set; }
 
-        public string Organizer { get; set; }
+        public int OrganizerId { get; set; }
     }
 }

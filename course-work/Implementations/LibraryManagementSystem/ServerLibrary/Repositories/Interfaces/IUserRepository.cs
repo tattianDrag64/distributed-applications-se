@@ -9,9 +9,15 @@ namespace ServerLibrary.Repositories.Interfaces
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<User?> GetUserWithReservationsAsync(Guid userId);
-        Task<User?> GetUserByCodeAsync(string code);
-        Task<User> ChangeStatus(int id);
+        Task<User?> GetUserWithReservationsAsync(int userId);
+        //Task<User> ChangeRoleAsync(int id);
         string HashPassword(string password);
+        Task<List<User>> GetEmployees();
+
+        Task<List<User>> GetMembers();
+
+        Task<User> GetUserByEmail(string userEmail);
+        Task<User> GetUserByUsername(string username);
+
     }
 }

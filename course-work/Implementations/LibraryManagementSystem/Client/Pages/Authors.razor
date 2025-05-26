@@ -1,0 +1,88 @@
+﻿@page "/authors"
+@using BaseLibrary.DTOs
+@using BaseLibrary.Entities
+@using ClientLibrary.Services.Interfaces
+@using MudBlazor
+@inject IAuthorManager AuthorManager
+@inject IDialogService DialogService
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h4">Authors</MudText>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenAddAuthorDialog">Add Author</MudButton>
+
+    <MudTable Items="@AuthorList" Hover="true" Class="mt-4">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Biography</MudTh>
+            <MudTh>Date of Birth</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.Biography</MudTd>
+            <MudTd>@context.DateOfBirth?.ToShortDateString()</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="() => OpenEditAuthorDialog(context)">Edit</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => DeleteAuthor(context.Id)">Delete</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    List<Author> AuthorList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthorList = await AuthorManager.GetAllAuthorsAsync();
+    }
+
+    async Task RefreshAuthors()
+    {
+        AuthorList = await AuthorManager.GetAllAuthorsAsync();
+    }
+
+    async Task DeleteAuthor(int id)
+    {
+        await AuthorManager.DeleteAuthorAsync(id);
+        await RefreshAuthors();
+    }
+
+    void OpenAddAuthorDialog() =>
+        OpenAuthorDialog(new CreateAuthorDTO(), "Add Author", isEdit: false);
+
+    void OpenEditAuthorDialog(Author author)
+    {
+        var dto = new CreateAuthorDTO
+            {
+                Name = author.Name,
+                Biography = author.Biography,
+                DateOfBirth = author.DateOfBirth ?? DateTime.Today,
+                ImageUrl = author.ImageUrl,
+                IsAlive = author.IsAlive,
+                DateOfDeath = author.DateOfDeath
+            };
+        OpenAuthorDialog(dto, "Edit Author", isEdit: true, id: author.Id);
+    }
+
+    void OpenAuthorDialog(CreateAuthorDTO author, string title, bool isEdit, int? id = null)
+    {
+        var parameters = new DialogParameters
+        {
+            { "AuthorDTO", author },
+            { "IsEdit", isEdit },
+            { "AuthorId", id }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<AuthorFormDialog>(title, parameters, options);
+
+        dialog.Result.ContinueWith(async result =>
+        {
+            if (!result.Result.Cancelled)
+            {
+                await RefreshAuthors();
+            }
+        });
+    }
+}

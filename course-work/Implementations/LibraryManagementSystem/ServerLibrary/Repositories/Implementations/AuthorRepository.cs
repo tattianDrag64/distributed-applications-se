@@ -1,4 +1,6 @@
 ﻿using BaseLibrary.Entities;
+using Microsoft.EntityFrameworkCore;
+using ServerLibrary.Data;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -9,51 +11,27 @@ using System.Threading.Tasks;
 
 namespace ServerLibrary.Repositories.Implementations
 {
-    public class AuthorRepository : IAuthorRepository, IRepository<Author>
+    public class AuthorRepository : Repository<Author>, IAuthorRepository
     {
-        public Author Add(Author obj)
+        private readonly ApplicationDbContext _context;
+        public AuthorRepository(ApplicationDbContext context) : base(context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task AddAsync(Author entity)
+        public async Task<Author?> GetAuthorByBookId(int bookId)
         {
-            throw new NotImplementedException();
+            return await _context.Books
+                .Where(b => b.Id == bookId)
+                .Select(b => b.Author)
+                .FirstOrDefaultAsync();
         }
 
-        public IEnumerable<Author> AddRange(IEnumerable<Author> obj)
+        public async Task<Author?> GetAuthorWithBooksAsync(int authorId)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Author>> FindAsync(Expression<Func<Author, bool>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Author>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Author?> GetAuthorWithBooksAsync(Guid authorId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Author?> GetByIdAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Remove(Author entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Author entity)
-        {
-            throw new NotImplementedException();
+            return await _context.Authors
+                .Include(a => a.Books)
+                .FirstOrDefaultAsync(a => a.Id == authorId);
         }
     }
 }

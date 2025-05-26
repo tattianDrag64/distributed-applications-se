@@ -10,7 +10,6 @@ namespace ServerLibrary.Repositories.Interfaces
     public interface IBookRepository : IRepository<Book>
     {
         Task<IEnumerable<Book>> GetBooksWithAuthorsGenresAsync();
-        Task<IEnumerable<Book>> GetBooksByUserIdAsync(Guid userId);
-
+        Task<IEnumerable<Book>> GetBooksByUserIdAsync(int userId);
     }
 }

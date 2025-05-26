@@ -1,48 +1,60 @@
-
-using BaseLibrary;
-using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Data;
-using ServerLibrary.Repositories.Implementations;
-using ServerLibrary.Repositories.Interfaces;
+using BaseLibrary;  
+using BaseLibrary.Entities;  
+using Microsoft.AspNetCore.Identity; // Keep this one  
+using Microsoft.EntityFrameworkCore;  
+using ServerLibrary.Data;  
+using ServerLibrary.Repositories.Implementations;  
+using ServerLibrary.Repositories.Interfaces;  
+using ServerLibrary.Services.Implementations;  
+using ServerLibrary.Services.Interfaces;  
+// Remove the duplicate below  
+// using Microsoft.AspNetCore.Identity;  
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;  
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorClient", policy =>
+        policy.WithOrigins("https://localhost:7033")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+    );
+});
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<AuthorRepository>();
+
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+// Регистрация на репозиторита и услугите  
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddIdentity<User, IdentityRole<int>>()
+  .AddEntityFrameworkStores<ApplicationDbContext>()
+  .AddDefaultTokenProviders();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
-
-
-
-
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowAll",
-//        policy => policy.AllowAnyOrigin()
-//                        .AllowAnyMethod()
-//                        .AllowAnyHeader());
-//});
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//    db.Database.Migrate();
-//}
+app.UseCors("AllowBlazorClient");
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -51,7 +63,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+//app.UseCors("AllowAll");
 
 app.UseAuthorization();
 

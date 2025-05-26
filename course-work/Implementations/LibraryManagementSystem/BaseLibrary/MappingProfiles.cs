@@ -33,6 +33,7 @@ namespace BaseLibrary
             CreateMap<Event, EventDTO>().ReverseMap();
 
             CreateMap<User, AccountBaseDTO>().ReverseMap();
+
         }
     }
 }

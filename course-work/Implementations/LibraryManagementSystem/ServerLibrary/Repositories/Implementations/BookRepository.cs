@@ -1,4 +1,6 @@
 ﻿using BaseLibrary.Entities;
+using Microsoft.EntityFrameworkCore;
+using ServerLibrary.Data;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -9,56 +11,26 @@ using System.Threading.Tasks;
 
 namespace ServerLibrary.Repositories.Implementations
 {
-    public class BookRepository : IBookRepository
+    public class BookRepository : Repository<Book>, IBookRepository
     {
-        public Book Add(Book obj)
+        private readonly ApplicationDbContext _context;
+        public BookRepository(ApplicationDbContext context) : base(context)
         {
-            throw new NotImplementedException();
         }
 
-        public Task AddAsync(Book entity)
+        public async Task<IEnumerable<Book>> GetBooksByUserIdAsync(int userId)
         {
-            throw new NotImplementedException();
+            return await _context.Books
+                .Where(b => b.BookCopies.Any(bc => bc.Reservations.Any(r => r.UserId == userId)))
+                .ToListAsync();
         }
 
-        public IEnumerable<Book> AddRange(IEnumerable<Book> obj)
+        public async Task<IEnumerable<Book>> GetBooksWithAuthorsGenresAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Book>> FindAsync(Expression<Func<Book, bool>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Book>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Book>> GetBooksByUserIdAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Book>> GetBooksWithAuthorsGenresAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Book?> GetByIdAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Remove(Book entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Book entity)
-        {
-            throw new NotImplementedException();
+            return await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
+                .ToListAsync();
         }
     }
 }

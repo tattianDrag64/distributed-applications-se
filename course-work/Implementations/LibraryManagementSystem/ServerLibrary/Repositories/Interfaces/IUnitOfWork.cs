@@ -18,6 +18,7 @@ namespace ServerLibrary.Repositories.Interfaces
         IReservationRepository Reservation { get; }
         IEventRepository Event { get; }
         IPenaltyRepository Penalty { get; }
-        Task<bool> SaveChangesAsync();
+
+        public Task<bool> SaveChangesAsync();
     }
 }

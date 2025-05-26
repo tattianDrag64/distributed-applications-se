@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BaseLibrary.Entities;
+using Microsoft.EntityFrameworkCore;
 using ServerLibrary.Data;
 using ServerLibrary.Repositories.Interfaces;
 using System;
@@ -26,7 +27,7 @@ namespace ServerLibrary.Repositories.Implementations
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
         }
@@ -63,6 +64,5 @@ namespace ServerLibrary.Repositories.Implementations
             _context.AddRange(obj);
             return obj;
         }
-
     }
 }

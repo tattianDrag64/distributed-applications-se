@@ -34,22 +34,22 @@ namespace ServerLibrary.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DateOfDeath")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAlive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -59,20 +59,11 @@ namespace ServerLibrary.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Biography = "British author",
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6507),
-                            DateOfBirth = new DateTime(1965, 7, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Name = "J.K. Rowling",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6508)
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Biography = "Science fiction author",
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6513),
-                            DateOfBirth = new DateTime(1920, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Isaac Asimov",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6513)
+                            Biography = "Colombian author, Nobel Prize winner.",
+                            DateOfBirth = new DateTime(1927, 3, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateOfDeath = new DateTime(2014, 4, 17, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsAlive = false,
+                            Name = "Gabriel Garcia Marquez"
                         });
                 });
 
@@ -90,24 +81,16 @@ namespace ServerLibrary.Data.Migrations
                     b.Property<int>("AvailableCopies")
                         .HasColumnType("int");
 
-                    b.Property<string>("BookCode")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
                     b.Property<string>("CoverImageUrl")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("GenreId")
+                    b.Property<int?>("GenreId")
                         .HasColumnType("int");
 
                     b.Property<long>("ISBN")
@@ -132,9 +115,6 @@ namespace ServerLibrary.Data.Migrations
                     b.Property<int>("TotalCopies")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
@@ -148,37 +128,108 @@ namespace ServerLibrary.Data.Migrations
                         {
                             Id = 1,
                             AuthorId = 1,
-                            AvailableCopies = 5,
-                            BookCode = "1001",
-                            CoverImageUrl = "https://example.com/harrypotter.jpg",
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6537),
-                            Description = "A young wizard's journey begins.",
+                            AvailableCopies = 3,
+                            CoverImageUrl = "https://www.amazon.in/Hundred-Years-Solitude-International-Writers/dp/0140157514",
+                            Description = "Magical realism and family saga.",
                             GenreId = 1,
-                            ISBN = 9780747532699L,
-                            Language = "English",
-                            PageCount = 223,
-                            PublishedDate = new DateTime(1997, 6, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Harry Potter and the Philosopher's Stone",
-                            TotalCopies = 5,
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6537)
+                            ISBN = 1234567890123L,
+                            Language = "Spanish",
+                            PageCount = 417,
+                            PublishedDate = new DateTime(1967, 5, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "One Hundred Years of Solitude",
+                            TotalCopies = 3
+                        });
+                });
+
+            modelBuilder.Entity("BaseLibrary.Entities.BookCopy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BookCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BorrowerId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("BorrowerId");
+
+                    b.ToTable("BookCopies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BookCode = "BC001",
+                            BookId = 1,
+                            IsAvailable = true
                         },
                         new
                         {
                             Id = 2,
-                            AuthorId = 2,
-                            AvailableCopies = 3,
-                            BookCode = "1002",
-                            CoverImageUrl = "https://example.com/foundation.jpg",
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6543),
-                            Description = "The story of the Galactic Empire's fall and rebirth.",
-                            GenreId = 2,
-                            ISBN = 9780553293357L,
-                            Language = "English",
-                            PageCount = 255,
-                            PublishedDate = new DateTime(1951, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Foundation",
-                            TotalCopies = 3,
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6543)
+                            BookCode = "BC002",
+                            BookId = 1,
+                            IsAvailable = true
+                        });
+                });
+
+            modelBuilder.Entity("BaseLibrary.Entities.Event", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrganizerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Events");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Discussion on Latin American literature.",
+                            EventDate = new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            OrganizerId = -1,
+                            Title = "Literature Seminar"
                         });
                 });
 
@@ -190,9 +241,6 @@ namespace ServerLibrary.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -201,10 +249,7 @@ namespace ServerLibrary.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
 
@@ -214,26 +259,8 @@ namespace ServerLibrary.Data.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6236),
-                            Description = "Fantasy books",
-                            Name = "Fantasy",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6239)
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6241),
-                            Description = "Sci-fi books",
-                            Name = "Science Fiction",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6242)
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6243),
-                            Description = "Romantic novels",
-                            Name = "Romance",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6243)
+                            Description = "A long narrative fictional work.",
+                            Name = "Novel"
                         });
                 });
 
@@ -248,11 +275,8 @@ namespace ServerLibrary.Data.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("BookId")
+                    b.Property<int>("BookCopyId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime2");
@@ -264,15 +288,12 @@ namespace ServerLibrary.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookId");
+                    b.HasIndex("BookCopyId");
 
                     b.HasIndex("UserId");
 
@@ -287,13 +308,16 @@ namespace ServerLibrary.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BookId")
+                    b.Property<int>("BookCopyId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DueDate")
+                    b.Property<bool>("IsReturned")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ReservationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
@@ -301,41 +325,16 @@ namespace ServerLibrary.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookId");
+                    b.HasIndex("BookCopyId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Reservations");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BookId = 1,
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6618),
-                            DueDate = new DateTime(2025, 5, 29, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6612),
-                            Status = "Reserved",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6618),
-                            UserId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BookId = 2,
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6622),
-                            DueDate = new DateTime(2025, 5, 29, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6621),
-                            Status = "Reserved",
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6622),
-                            UserId = 2
-                        });
                 });
 
             modelBuilder.Entity("BaseLibrary.Entities.Review", b =>
@@ -351,7 +350,7 @@ namespace ServerLibrary.Data.Migrations
 
                     b.Property<string>("Comment")
                         .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -359,14 +358,8 @@ namespace ServerLibrary.Data.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<int>("Rating")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -380,13 +373,220 @@ namespace ServerLibrary.Data.Migrations
                     b.ToTable("Reviews");
                 });
 
-            modelBuilder.Entity("BaseLibrary.Entities.User", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasDiscriminator().HasValue("IdentityUser<int>");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("BaseLibrary.Entities.User", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser<int>");
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -396,78 +596,44 @@ namespace ServerLibrary.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)");
-
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("varchar(12)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<int>("TotalReadBooks")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("role")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("Users");
+                    b.HasDiscriminator().HasValue("User");
 
                     b.HasData(
                         new
                         {
-                            Id = 1,
-                            Address = "123 Main St",
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6577),
-                            Email = "alice@example.com",
-                            FullName = "Alice Johnson",
-                            PasswordHash = "hashedpassword",
-                            PhoneNumber = "1234567890",
-                            Role = "User",
+                            Id = -1,
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "0829cab2-e92c-4937-b688-1de1ba889aa5",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            PhoneNumberConfirmed = false,
+                            TwoFactorEnabled = false,
+                            UserName = "john123",
+                            Address = "New York, USA",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            FullName = "John Smith",
                             TotalReadBooks = 0,
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6574),
-                            Username = "alice"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Address = "456 Maple Ave",
-                            CreatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6581),
-                            Email = "bob@example.com",
-                            FullName = "Bob Smith",
-                            PasswordHash = "hashedpassword",
-                            PhoneNumber = "0987654321",
-                            Role = "User",
-                            TotalReadBooks = 0,
-                            UpdatedAt = new DateTime(2025, 5, 15, 16, 19, 25, 765, DateTimeKind.Utc).AddTicks(6579),
-                            Username = "bob"
+                            role = 2
                         });
                 });
 
@@ -482,19 +648,51 @@ namespace ServerLibrary.Data.Migrations
                     b.HasOne("BaseLibrary.Entities.Genre", "Genre")
                         .WithMany("Books")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
 
                     b.Navigation("Genre");
                 });
 
-            modelBuilder.Entity("BaseLibrary.Entities.Penalty", b =>
+            modelBuilder.Entity("BaseLibrary.Entities.BookCopy", b =>
                 {
                     b.HasOne("BaseLibrary.Entities.Book", "Book")
-                        .WithMany("Penalties")
+                        .WithMany("BookCopies")
                         .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BaseLibrary.Entities.User", "Borrower")
+                        .WithMany()
+                        .HasForeignKey("BorrowerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Borrower");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Entities.Event", b =>
+                {
+                    b.HasOne("BaseLibrary.Entities.User", "Organizer")
+                        .WithMany()
+                        .HasForeignKey("OrganizerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BaseLibrary.Entities.User", null)
+                        .WithMany("Events")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Organizer");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Entities.Penalty", b =>
+                {
+                    b.HasOne("BaseLibrary.Entities.BookCopy", "bookCopy")
+                        .WithMany("Penalties")
+                        .HasForeignKey("BookCopyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -504,16 +702,16 @@ namespace ServerLibrary.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Book");
-
                     b.Navigation("User");
+
+                    b.Navigation("bookCopy");
                 });
 
             modelBuilder.Entity("BaseLibrary.Entities.Reservation", b =>
                 {
-                    b.HasOne("BaseLibrary.Entities.Book", "Book")
+                    b.HasOne("BaseLibrary.Entities.BookCopy", "BookCopy")
                         .WithMany("Reservations")
-                        .HasForeignKey("BookId")
+                        .HasForeignKey("BookCopyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -523,7 +721,7 @@ namespace ServerLibrary.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Book");
+                    b.Navigation("BookCopy");
 
                     b.Navigation("User");
                 });
@@ -547,6 +745,57 @@ namespace ServerLibrary.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<int>", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<int>", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<int>", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<int>", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("BaseLibrary.Entities.Author", b =>
                 {
                     b.Navigation("Books");
@@ -554,11 +803,16 @@ namespace ServerLibrary.Data.Migrations
 
             modelBuilder.Entity("BaseLibrary.Entities.Book", b =>
                 {
+                    b.Navigation("BookCopies");
+
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("BaseLibrary.Entities.BookCopy", b =>
+                {
                     b.Navigation("Penalties");
 
                     b.Navigation("Reservations");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("BaseLibrary.Entities.Genre", b =>
@@ -568,6 +822,8 @@ namespace ServerLibrary.Data.Migrations
 
             modelBuilder.Entity("BaseLibrary.Entities.User", b =>
                 {
+                    b.Navigation("Events");
+
                     b.Navigation("Penalties");
 
                     b.Navigation("Reservations");

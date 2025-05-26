@@ -14,6 +14,5 @@ namespace ServerLibrary.Repositories.Interfaces
         Task<Reservation> RenewReservation(int Id);
         Task<IEnumerable<Reservation>> GetAllReturnedReservations(int userId);
         Task<IEnumerable<Reservation>> GetAllLostedReservations();
-        Task<Reservation> ChangeStatus(int id);
     }
 }

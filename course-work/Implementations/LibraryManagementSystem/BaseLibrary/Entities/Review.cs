@@ -2,8 +2,10 @@
 
 namespace BaseLibrary.Entities
 {
-    public class Review : BaseEntity
+    public class Review 
     {
+        [Key]
+        public int Id { get; set; }
         public int BookId { get; set; }
         public Book Book { get; set; }
         public int UserId { get; set; }
@@ -12,9 +14,8 @@ namespace BaseLibrary.Entities
         [Range(1, 5)]
         public int Rating { get; set; }
         public string Comment { get; set; }
-        //public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        //public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-        public bool IsDeleted { get; set; } = false;
-        public DateTime? DeletedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? DeletedAt { get; set; }
+        public bool IsDeleted => DeletedAt.HasValue;
     }
 }

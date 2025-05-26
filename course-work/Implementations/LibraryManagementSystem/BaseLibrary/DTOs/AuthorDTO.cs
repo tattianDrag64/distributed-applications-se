@@ -10,6 +10,9 @@ namespace BaseLibrary.DTOs
         public string Biography { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string? ImageUrl { get; set; }
+        public bool IsAlive { get; set; } = true;
+        public DateTime? DateOfDeath { get; set; }
+        //public ICollection<Book> Books { get; set; }
         //public ICollection<Book> Books { get; set; }
     }
 }

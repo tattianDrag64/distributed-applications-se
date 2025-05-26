@@ -2,8 +2,10 @@
 
 namespace BaseLibrary.Entities
 {
-    public class Genre : BaseEntity
+    public class Genre
     {
+        [Key]
+        public int Id { get; set; }
         [MaxLength(20)]
         public string Name { get; set; }
         [MaxLength(1000)]

@@ -9,6 +9,8 @@ namespace ServerLibrary.Repositories.Interfaces
 {
     public interface IAuthorRepository : IRepository<Author>
     {
-        Task<Author?> GetAuthorWithBooksAsync(Guid authorId);
+        Task<Author?> GetAuthorWithBooksAsync(int authorId);
+        Task<Author?> GetAuthorByBookId(int bookId);
+
     }
 }

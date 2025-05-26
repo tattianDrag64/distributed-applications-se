@@ -1,13 +1,20 @@
 ﻿using BaseLibrary.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Reflection.Emit;
+using static BaseLibrary.Utility.SD;
+using static System.Net.WebRequestMethods;
 
 namespace ServerLibrary.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser<int>, IdentityRole<int>, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
@@ -15,6 +22,8 @@ namespace ServerLibrary.Data
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Genre> Genres { get; set; }
+        public DbSet<Event> Events { get; set; }
+        public DbSet<BookCopy> BookCopies { get; set; }
 
         public static ApplicationDbContext CreateDbContext(string[] args)
         {
@@ -23,213 +32,283 @@ namespace ServerLibrary.Data
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            #region User Config 
-
-            modelBuilder.Entity<User>().HasKey(x => x.Id);
-
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
-
+            // === USER ===  
             modelBuilder.Entity<User>(entity =>
             {
-                entity.Property(u => u.FullName).HasColumnType("nvarchar(50)");
-                entity.Property(u => u.Email).HasColumnType("varchar(100)");
-                entity.Property(u => u.Username).HasColumnType("nvarchar(50)");
-                entity.Property(u => u.PasswordHash).HasColumnType("varchar(255)");
-                entity.Property(u => u.Role).HasColumnType("varchar(20)");
-                entity.Property(u => u.PhoneNumber).HasColumnType("varchar(12)");
+                //entity.HasKey(u => u.Id);
+
+                entity.Property(u => u.FullName).IsRequired();
+                entity.Property(u => u.Address).HasMaxLength(50);
+                entity.Property(u => u.UserName).IsRequired();
+                entity.Property(u => u.PasswordHash);
+                entity.Property(u => u.Email).HasMaxLength(100);
+                entity.Property(u => u.PhoneNumber);
+                entity.Property(u => u.ImageUrl);
+                entity.Property(u => u.Description);
             });
 
-            #endregion
-
-            #region Review Config 
-
-            modelBuilder.Entity<Review>().HasKey(x => x.Id);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.Reviews)
-                .HasForeignKey(r => r.UserId);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Book)
-                .WithMany(b => b.Reviews)
-                .HasForeignKey(r => r.BookId);
-
-            modelBuilder.Entity<Review>().Property(r => r.Comment).HasColumnType("varchar(max)");
-
-            #endregion
-
-            #region Penalty Config 
-
-            modelBuilder.Entity<Penalty>().HasKey(x => x.Id);
-
-            modelBuilder.Entity<Penalty>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Penalties)
-                .HasForeignKey(p => p.UserId);
-
-            modelBuilder.Entity<Penalty>()
-                .HasOne(p => p.Book)
-                .WithMany(b => b.Penalties)
-                .HasForeignKey(p => p.BookId);
-
-            modelBuilder.Entity<Penalty>()
-                .Property(p => p.Amount)
-                .HasColumnType("decimal(10,2)");
-
-            #endregion
-
-            #region Reservation Config 
-
-            modelBuilder.Entity<Reservation>().HasKey(x => x.Id);
-
-            modelBuilder.Entity<Reservation>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.Reservations)
-                .HasForeignKey(r => r.UserId);
-
-            modelBuilder.Entity<Reservation>()
-                .HasOne(r => r.Book)
-                .WithMany(b => b.Reservations)
-                .HasForeignKey(r => r.BookId);
-
-            #endregion
-
-
-            #region Author Config 
-
-            modelBuilder.Entity<Author>().HasKey(x => x.Id);
-            modelBuilder.Entity<Author>().Property(a => a.Name).HasColumnType("varchar(50)");
-            modelBuilder.Entity<Author>().Property(b => b.ImageUrl).HasColumnType("varchar(255)");
-            #endregion
-
-            #region Book Config
-
-            modelBuilder.Entity<Book>().HasKey(x => x.Id);
-
-            modelBuilder.Entity<Book>(entity =>
+            // === AUTHOR ===  
+            modelBuilder.Entity<Author>(entity =>
             {
-                entity.Property(b => b.CoverImageUrl).HasColumnType("varchar(255)");
+                entity.HasKey(a => a.Id);
+
+                entity.Property(a => a.Name).IsRequired().HasMaxLength(50);
+                entity.Property(a => a.Biography).HasMaxLength(1000);
+                entity.Property(a => a.DateOfBirth).IsRequired();
+                entity.Property(a => a.ImageUrl);
             });
 
-            #endregion
-
-            #region Genre Config
-
-            modelBuilder.Entity<Genre>().HasKey(x => x.Id);
-
+            // === GENRE ===  
             modelBuilder.Entity<Genre>(entity =>
             {
-                entity.Property(g => g.Name).HasColumnType("nvarchar(100)");
+                entity.HasKey(g => g.Id);
+
+                entity.Property(g => g.Name).HasMaxLength(20);
+                entity.Property(g => g.Description).HasMaxLength(1000);
             });
 
-            #endregion
+            // === BOOK ===  
+            modelBuilder.Entity<Book>(entity =>
+            {
+                entity.HasKey(b => b.Id);
 
-            // Seed data (пример)
-            modelBuilder.Entity<Genre>().HasData(
-                new Genre { Id = 1, Name = "Fantasy", Description = "Fantasy books" },
-                new Genre { Id = 2, Name = "Science Fiction", Description = "Sci-fi books" },
-                new Genre { Id = 3, Name = "Romance", Description = "Romantic novels" }
+                entity.Property(b => b.Title).IsRequired().HasMaxLength(100);
+                entity.Property(b => b.Description).HasMaxLength(1000);
+                entity.Property(b => b.Language).HasMaxLength(50);
+                entity.Property(b => b.CoverImageUrl);
+
+                entity.HasOne(b => b.Author)
+                    .WithMany(a => a.Books)
+                    .HasForeignKey(b => b.AuthorId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(b => b.Genre)
+                    .WithMany(g => g.Books)
+                    .HasForeignKey(b => b.GenreId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // === BOOKCOPY ===  
+            modelBuilder.Entity<BookCopy>(entity =>
+            {
+                entity.HasKey(bc => bc.Id);
+
+                entity.Property(bc => bc.BookCode).IsRequired().HasMaxLength(10);
+
+                entity.HasOne(bc => bc.Book)
+                    .WithMany(b => b.BookCopies)
+                    .HasForeignKey(bc => bc.BookId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(bc => bc.Borrower)
+                    .WithMany()
+                    .HasForeignKey(bc => bc.BorrowerId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // === RESERVATION ===  
+            modelBuilder.Entity<Reservation>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+
+                entity.Property(r => r.ReservationDate).IsRequired();
+                entity.Property(r => r.DueDate).IsRequired();
+                entity.Property(r => r.Status)
+                    .HasConversion<string>()
+                    .HasMaxLength(10);
+
+                entity.HasOne(r => r.User)
+                    .WithMany(u => u.Reservations)
+                    .HasForeignKey(r => r.UserId);
+
+                entity.HasOne(r => r.BookCopy)
+                .WithMany(bc => bc.Reservations)
+                .HasForeignKey(r => r.BookCopyId);
+            });
+
+            // === REVIEW ===  
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+
+                entity.Property(r => r.Rating).IsRequired();
+                entity.Property(r => r.Comment);
+
+                entity.HasOne(r => r.Book)
+                    .WithMany(b => b.Reviews)
+                    .HasForeignKey(r => r.BookId);
+
+                entity.HasOne(r => r.User)
+                    .WithMany(u => u.Reviews)
+                    .HasForeignKey(r => r.UserId);
+            });
+
+            // === PENALTY ===  
+            modelBuilder.Entity<Penalty>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.DueDate);
+                entity.Property(p => p.Amount);
+                entity.Property(p => p.Reason);
+
+                entity.HasOne(p => p.User)
+                    .WithMany(u => u.Penalties)
+                    .HasForeignKey(p => p.UserId);
+
+                entity.HasOne(p => p.bookCopy)
+                    .WithMany(b => b.Penalties)
+                    .HasForeignKey(p => p.BookCopyId);
+
+                entity.Property(p => p.Amount).HasColumnType("decimal(10,2)");
+            });
+
+            // === EVENT ===  
+            modelBuilder.Entity<Event>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Description);
+
+                entity.HasOne(e => e.Organizer)
+                    .WithMany()
+                    .HasForeignKey(e => e.OrganizerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Seed Data  
+            modelBuilder.Entity<Author>().HasData(
+                new Author
+                {
+                    Id = 1,
+                    Name = "Gabriel Garcia Marquez",
+                    Biography = "Colombian author, Nobel Prize winner.",
+                    DateOfBirth = new DateTime(1927, 3, 6),
+                    IsAlive = false,
+                    DateOfDeath = new DateTime(2014, 4, 17),
+                    ImageUrl = null
+                }
             );
 
-            modelBuilder.Entity<Author>().HasData(
-                new Author { Id = 1, Name = "J.K. Rowling", Biography = "British author", DateOfBirth = new DateTime(1965, 7, 31) },
-                new Author { Id = 2, Name = "Isaac Asimov", Biography = "Science fiction author", DateOfBirth = new DateTime(1920, 1, 2) }
+            modelBuilder.Entity<Genre>().HasData(
+                new Genre
+                {
+                    Id = 1,
+                    Name = "Novel",
+                    Description = "A long narrative fictional work."
+                }
+            );
+
+
+
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = -1,
+                    FullName = "John Smith",
+                    UserName = "john123",
+                    PasswordHash = "hashed_password",
+                    Email = "john@example.com",
+                    PhoneNumber = "1234567890",
+                    Address = "New York, USA",
+                    role = Role.Member,
+                    TotalReadBooks = 0,
+                    DateOfBirth = new DateTime(1990, 1, 1),
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+
+                }
+
             );
 
             modelBuilder.Entity<Book>().HasData(
                 new Book
                 {
                     Id = 1,
-                    Title = "Harry Potter and the Philosopher's Stone",
-                    Description = "A young wizard's journey begins.",
-                    ISBN = 9780747532699,
-                    BookCode = "1001",
-                    PublishedDate = new DateTime(1997, 6, 26),
-                    PageCount = 223,
-                    Language = "English",
-                    CoverImageUrl = "https://example.com/harrypotter.jpg",
+                    Title = "One Hundred Years of Solitude",
+                    Description = "Magical realism and family saga.",
+                    ISBN = 1234567890123,
+                    PublishedDate = new DateTime(1967, 5, 30),
+                    PageCount = 417,
+                    Language = "Spanish",
+                    CoverImageUrl = "https://www.amazon.in/Hundred-Years-Solitude-International-Writers/dp/0140157514",
                     AuthorId = 1,
                     GenreId = 1,
-                    TotalCopies = 5,
-                    AvailableCopies = 5
-                },
-                new Book
-                {
-                    Id = 2,
-                    Title = "Foundation",
-                    Description = "The story of the Galactic Empire's fall and rebirth.",
-                    ISBN = 9780553293357,
-                    BookCode = "1002",
-                    PublishedDate = new DateTime(1951, 1, 1),
-                    PageCount = 255,
-                    Language = "English",
-                    CoverImageUrl = "https://example.com/foundation.jpg",
-                    AuthorId = 2,
-                    GenreId = 2,
                     TotalCopies = 3,
                     AvailableCopies = 3
                 }
-
             );
 
-            modelBuilder.Entity<User>().HasData(
-                new User
+            modelBuilder.Entity<BookCopy>().HasData(
+                new BookCopy
                 {
                     Id = 1,
-                    FullName = "Alice Johnson",
-                    Username = "alice",
-                    //Password = "hashedpassword",
-                    PasswordHash = "hashedpassword",
-                    Email = "alice@example.com",
-                    PhoneNumber = "1234567890",
-                    Address = "123 Main St",
-                    Role = "User",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new User
-                {
-                    Id = 2,
-                    FullName = "Bob Smith",
-                    Username = "bob",
-                    //Password = "hashedpassword",
-                    PasswordHash = "hashedpassword",
-                    Email = "bob@example.com",
-                    PhoneNumber = "0987654321",
-                    Address = "456 Maple Ave",
-                    Role = "User",
-                    CreatedAt = DateTime.UtcNow
-                }
-            );
-
-            modelBuilder.Entity<Reservation>().HasData(
-                new Reservation
-                {
-                    Id = 1,
-                    UserId = 1,
                     BookId = 1,
-                    DueDate = DateTime.UtcNow.AddDays(14),
-                    Status = "Reserved",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    BookCode = "BC001",
+                    IsAvailable = true
                 },
-                new Reservation
+                new BookCopy
                 {
                     Id = 2,
-                    UserId = 2,
-                    BookId = 2,
-                    DueDate = DateTime.UtcNow.AddDays(14),
-                    Status = "Reserved",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    BookId = 1,
+                    BookCode = "BC002",
+                    IsAvailable = true
                 }
-                );
+            );
+
+            modelBuilder.Entity<Event>().HasData(
+                new Event
+                {
+                    Id = 1,
+                    Title = "Literature Seminar",
+                    Description = "Discussion on Latin American literature.",
+                    EventDate = new DateTime(2025, 6, 15),
+                    OrganizerId = -1
+                }
+            );
+
+            //modelBuilder.Entity<Reservation>().HasData(
+            //    new Reservation
+            //    {
+            //        Id = 1,
+            //        UserId = 1,
+            //        BookCopyId = 1,
+            //        ReservationDate = new DateTime(2025, 5, 20),
+            //        DueDate = new DateTime(2025, 6, 3),
+            //        Status = ReservationStatus.Active,
+            //        IsReturned = false
+            //    }
+            //);
+
+            //modelBuilder.Entity<Review>().HasData(
+            //    new Review
+            //    {
+            //        Id = 1,
+            //        BookId = 1,
+            //        UserId = -1,
+            //        Rating = 5,
+            //        Comment = "An outstanding novel with beautiful prose and deep themes.",
+            //        CreatedAt = DateTime.UtcNow
+            //    }
+            //);
+
+            //modelBuilder.Entity<Penalty>().HasData(
+            //    new Penalty
+            //    {
+            //        Id = 1,
+            //        UserId = -1,
+            //        BookCopyId = 1,
+            //        DueDate = new DateTime(2025, 5, 10),
+            //        Amount = 5.00m,
+            //        IsPaid = false,
+            //        Reason = "Late return of borrowed book"
+            //    }
+            //);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace ServerLibrary.Repositories
         {
             var claims = new List<Claim>
            {
-               new Claim(JwtRegisteredClaimNames.Sub, _user.Username), // Fixed 'UserName' to 'Username'  
+               new Claim(JwtRegisteredClaimNames.Sub, _user.UserName), // Fixed 'UserName' to 'Username'  
                new Claim(JwtRegisteredClaimNames.Email, _user.Email)
            };
             var roles = await _userManager.GetRolesAsync(_user);

@@ -9,7 +9,7 @@ namespace ServerLibrary.Repositories.Interfaces
 {
     public interface IReservationRepository : IRepository<Reservation>
     {
-        Task<IEnumerable<Reservation>> GetActiveReservationsByUser(int userId);
+
         Task<IEnumerable<Reservation>> GetReservationHistoryOfUser(int UserId);
         Task<Reservation> RenewReservation(int Id);
         Task<IEnumerable<Reservation>> GetAllReturnedReservations(int userId);

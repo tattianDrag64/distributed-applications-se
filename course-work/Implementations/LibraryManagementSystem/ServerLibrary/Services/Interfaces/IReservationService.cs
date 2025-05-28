@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ServerLibrary.Services.Interfaces
 {
-    public interface IReservationService : IServiceBase<ReservationDTO>
+    public interface IReservationService
     {
         //        Task<List<Loan>> GetLoansByUserId(int userId);
 
@@ -32,6 +32,7 @@ namespace ServerLibrary.Services.Interfaces
         ///
         Task<bool> ReturnReservation(int bookCopyId);
         Task<List<Book>> GetTopBooks();
-        Task<Reservation> Create(int bookId, int UserId);
+        Task<Reservation> CreateReservation(int bookId, int UserId);
+        Task<List<Reservation>> GetReservationsById(int userId);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using BaseLibrary.DTOs;
 using BaseLibrary.Entities;
 using Microsoft.AspNetCore.Mvc;
-using ServerLibrary.Services.Interfaces;
+using Server.Services.Interfaces;
 
 namespace Server.Controllers
 {
@@ -17,18 +17,18 @@ namespace Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<EventDTO>>> GetAllEvents()
+        public async Task<ActionResult<List<EventLibrary>>> GetAllEvents()
         {
-            var events = await _eventService.GetAllAsync();
+            var events = await _eventService.GetAllEvents();
 
             if (events == null) return NotFound("There are no events");
             return Ok(events);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<EventDTO>> GetEventById(int id)
+        public async Task<ActionResult<EventLibrary>> GetEventById(int id)
         {
-            var seminar = await _eventService.GetByIdAsync(id);
+            var seminar = await _eventService.GetEventById(id);
 
             if (seminar == null)
             {
@@ -38,11 +38,11 @@ namespace Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateEvent([FromBody] EventDTO eventToAdd)
+        public async Task<ActionResult> CreateEvent([FromBody] EventLibrary eventToAdd)
         {
             if (eventToAdd != null)
             {
-                await _eventService.CreateAsync(eventToAdd);
+                await _eventService.CreateEvent(eventToAdd);
 
                 return Ok("Seminar has been added");
             }
@@ -50,9 +50,9 @@ namespace Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateEvent(int id, [FromBody] EventDTO seminarToUpdate)
+        public async Task<ActionResult> UpdateEvent(int id, [FromBody] EventLibrary seminarToUpdate)
         {
-            var seminar = await _eventService.UpdateAsync(id, seminarToUpdate);
+            var seminar = await _eventService.UpdateEvent(id, seminarToUpdate);
 
             if (seminar != null) return Ok("Seminar has been updated");
             return NotFound("There is no event with that ID");
@@ -61,7 +61,7 @@ namespace Server.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteEvent(int id)
         {
-            var eventt = await _eventService.DeleteAsync(id);
+            var eventt = await _eventService.DeleteEvent(id);
             if (eventt != null) return Ok("Event has been deleted");
             return NotFound("There is no event with that ID");
         }

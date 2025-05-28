@@ -1,0 +1,165 @@
+﻿@page "/allbooks"
+@inject ILocalStorageService LocalStorage;
+@inject ISearchManager SearchManager
+@inject IReservationManager ReservationManager
+@inject IBookManager BookManager
+@inject IUserManager UserManager
+@inject IBookCopyManager BookCopyManager
+@inject IDialogService DialogService
+
+@if (Message == "Book reserved")
+{
+    <MudAlert Severity="Severity.Success">@Message</MudAlert>
+}
+else if (Message == "Failed")
+{
+    <MudAlert Severity="Severity.Error">@Message</MudAlert>
+}
+
+<AuthorizeView Roles="Librarian, Admin">
+    @if (EditBookMode)
+    {
+        <MudButton @onclick="CloseEditBook"> <MudIcon Icon="@Icons.Material.Filled.Close"></MudIcon></MudButton>
+        <EditBookForm Id="BookId" OnBookUpdated="RefreshBooks" />
+    }
+</AuthorizeView>
+
+@if (AllBooks == null)
+{
+    <h3 class="mt-2">No books available at the moment</h3>
+}
+else if (AllBooks.Count == 0)
+{
+    <h3 class="mt-2">Loading...</h3>
+}
+else
+{
+    <MudTable Context="book" Items="@AllBooks" Hover="@hover" Filter="FilterFunc">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Books</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="SearchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh></MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh>Author</MudTh>
+            <MudTh>Published</MudTh>
+            <MudTh>Genre</MudTh>
+            <AuthorizeView Roles="Admin, Librarian">
+                <MudTh>Copies</MudTh>
+            </AuthorizeView>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudImage Src="@GetCoverImage(book.Title)" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+            </MudTd>
+            <MudTd><a href="BookById/@book.Id"><b>@book.Title</b></a></MudTd>
+            <MudTd>@book.Author.Name</MudTd>
+            <MudTd>@book.PublishedDate.ToString("yyyy")</MudTd>
+            <MudTd>@book.Genre?.Name</MudTd>
+
+            <AuthorizeView Roles="Admin, Librarian">
+                <MudTd>@book.TotalCopies</MudTd>
+            </AuthorizeView>
+            <AuthorizeView Roles="Member">
+                <MudTd>
+                    @if (!AvailableReservations.Any(r => r.Id == book.Id))
+                    {
+                        <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not available</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" @onclick="() => ReserveBook(book.Id)">Reserve</MudButton>
+                    }
+                </MudTd>
+            </AuthorizeView>
+            <AuthorizeView Roles="Librarian, Admin">
+                <MudTd HorizontalAlignment="HorizontalAlignment.Right">
+                    <MudButton @onclick="() => EditBook(book.Id)"><MudIcon Icon="@Icons.Material.Filled.Edit"></MudIcon></MudButton>
+                    <MudButton @onclick="() => DeleteBook(book.Id)"><MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon></MudButton>
+                </MudTd>
+            </AuthorizeView>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    [Parameter] public int BookId { get; set; }
+    [Parameter] public List<Book> AllBooks { get; set; } = new();
+
+    public List<Book> AvailableReservations { get; set; } = new();
+    public User CurrentUser { get; set; } = new();
+
+    private string SearchString = "";
+    private bool hover = true;
+    private bool EditBookMode;
+    private string Message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+        CurrentUser = await UserManager.GetUserByEmail(userEmail);
+
+        AvailableReservations = await BookCopyManager.GetAllReservations();
+        AllBooks = await BookManager.GetAllBooks();
+    }
+
+    private async Task RefreshBooks()
+    {
+        AllBooks = await BookManager.GetAllBooks();
+        EditBookMode = false;
+    }
+
+    public void EditBook(int id)
+    {
+        EditBookMode = true;
+        BookId = id;
+    }
+
+    public async Task DeleteBook(int id)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete the book? This action cannot be undone." },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error },
+            { "Id", id }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = DialogService.Show<DeleteBook>("Delete Book", parameters, options);
+
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            AllBooks = await BookManager.GetAllBooks();
+        }
+    }
+
+    public async Task ReserveBook(int bookId)
+    {
+        Message = await ReservationManager.AddReservation(bookId, CurrentUser.Id);
+        AvailableReservations = await BookCopyManager.GetAllReservations();
+    }
+
+    void CloseEditBook() => EditBookMode = false;
+
+    private bool FilterFunc(Book book) =>
+        string.IsNullOrWhiteSpace(SearchString) ||
+        book.Title.Contains(SearchString, StringComparison.OrdinalIgnoreCase) ||
+        book.Author.Name.Contains(SearchString, StringComparison.OrdinalIgnoreCase) ||
+        (book.Genre?.Name?.Contains(SearchString, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private string GetCoverImage(string title)
+    {
+        if (title.Contains("Harry", StringComparison.OrdinalIgnoreCase))
+            return "images/harry-potter-and-the-goblet-of-fire-5.jpg";
+        if (title.Contains("Pippi", StringComparison.OrdinalIgnoreCase))
+            return "images/Pippi.jpg";
+        return "images/Random.jpg";
+    }
+}

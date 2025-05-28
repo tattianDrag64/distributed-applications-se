@@ -1,0 +1,157 @@
+﻿@page "/genres"
+@inject IGenreManager GenreManager
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+@if (addGenre)
+{
+  <EditForm Model=Genre>
+      <DataAnnotationsValidator />
+
+      <div class="form-group">
+          <MudText Typo="Typo.h6">Genre Name</MudText>
+          <InputText Id="Title" class="form-control" @bind-Value="Genre.Name" />
+            <ValidationMessage For="@(() => Genre.Name)" />
+      </div>
+
+      <MudButton Variant="Variant.Filled" Color="Color.Primary" type="submit" @onclick="()=>HandleAddGenre()" class="btn btn-primary mt-2 mb-2">Save</MudButton>
+  </EditForm>
+}
+@if (!string.IsNullOrEmpty(message))
+{
+    if (message == $"{Genre.Name} already exists")
+    {
+      <MudAlert Severity="Severity.Warning">@message</MudAlert>
+  }
+  else
+  {
+      <MudAlert Severity="Severity.Success">@message</MudAlert>
+  }
+
+}
+
+@if (update)
+{
+  <MudText Typo="Typo.h6">Update</MudText>
+  <EditForm Context="_context" Model="Genre2">
+      <table class="table">
+          <thead class="thead-light">
+              <tr>
+                  <th>Genre</th>
+                  <th></th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr>
+                  <td><input type="text" @bind-value="Genre2.Name" /></td>
+                  <td><MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="()=>UpdateGenre()">Save</MudButton></td>
+              </tr>
+          </tbody>
+      </table>
+  </EditForm>
+}
+@if (Genres != null)
+{
+ <MudTable Context="genre" Items="@Genres">
+     <ToolBarContent>
+         <MudText Typo="Typo.h6">Genres</MudText>
+         <MudSpacer />
+         <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="AddGenreBool">Add Genre</MudButton>
+     </ToolBarContent>
+     <ColGroup><col style="width: 70%;" /><col style="width: 10%;" /></ColGroup>
+     <HeaderContent>
+         <MudTh>Genre</MudTh>
+         <MudTh></MudTh>
+         <MudTh></MudTh>
+     </HeaderContent>
+     <RowTemplate>
+           <MudTd DataLabel="Name">@genre.Name</MudTd>
+         <AuthorizeView Roles="Admin, Librarian">
+             <MudTd>
+                 <MudButton @onclick="() => SetIdToUpdate(genre.Id)"><MudIcon Icon="@Icons.Material.Filled.Edit"></MudIcon></MudButton>
+             </MudTd>
+             <MudTd>
+                 <MudButton @onclick="() => HandleDeleteGenre(genre.Id)"><MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon></MudButton>
+             </MudTd>
+         </AuthorizeView>
+     </RowTemplate>
+     <PagerContent>
+         <MudTablePager />
+     </PagerContent>
+ </MudTable>
+}
+
+}
+<br />
+
+@code {
+  List<Genre> Genres { get; set; } = new();
+  public Genre Genre { get; set; } = new();
+  public Genre Genre2 { get; set; } = new();
+  string message;
+  bool update;
+  bool addGenre;
+
+  protected override async Task OnInitializedAsync()
+  {
+      Genres = await GenreManager.GetAllGenresAsync();
+  }
+
+  public async Task HandleDeleteGenre(int id)
+  {
+      var parameters = new DialogParameters();
+      parameters.Add("ContentText", "Are you sure you want to delete the genre? This action cannot be undone.");
+      parameters.Add("ButtonText", "Delete");
+      parameters.Add("Color", Color.Error);
+      parameters.Add("Id", id);
+
+      var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+      var dialog = DialogService.Show<DeleteGenre>("Delete Genre", parameters, options);
+
+      var result = await dialog.Result;
+           if (result.Data is true) 
+           {
+               foreach (var genre in Genres)
+               {
+                   if (genre.Id == id)
+                   {
+                       message = $"{genre.Name} has been deleted";
+                   }
+               }
+               Genres = await GenreManager.GetAllGenresAsync();
+           }
+
+  }
+
+  async Task SetIdToUpdate(int id)
+  {
+      Genre2 = await GenreManager.GetGenreByIdAsync(id);
+      _ = update = true ? (update == false) : (update == true);
+  }
+
+  async Task UpdateGenre()
+  {
+      await GenreManager.UpdateGenre(Genre2);
+      Genres = await GenreManager.GetAllGenresAsync();
+      _ = update = true ? (update == false) : (update == true);
+        message = $"{Genre2.Name} has been updated";
+    }
+
+  async Task HandleAddGenre()
+  {
+      var result = await GenreManager.AddGenre(Genre);
+      if (result != null)
+            message = $"{Genre.Name} has been added";
+        else
+            message = $"{Genre.Name} already exists";
+
+        Genres = await GenreManager.GetAllGenresAsync();
+      addGenre = false;
+  }
+
+  async Task AddGenreBool()
+  {
+      _ = addGenre = true ? (addGenre == false) : (addGenre == true);
+  }
+}

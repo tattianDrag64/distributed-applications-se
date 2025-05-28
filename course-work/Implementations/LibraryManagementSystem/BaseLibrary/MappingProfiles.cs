@@ -30,7 +30,7 @@ namespace BaseLibrary
 
             CreateMap<Penalty, PenaltyDTO>().ReverseMap();
               
-            CreateMap<Event, EventDTO>().ReverseMap();
+            CreateMap<EventLibrary, EventLibraryDTO>().ReverseMap();
 
             CreateMap<User, AccountBaseDTO>().ReverseMap();
 

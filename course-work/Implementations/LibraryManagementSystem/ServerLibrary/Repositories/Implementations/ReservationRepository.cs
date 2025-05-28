@@ -1,6 +1,6 @@
 ﻿using BaseLibrary.Entities;
 using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,14 +19,6 @@ namespace ServerLibrary.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<IEnumerable<Reservation>> GetActiveReservationsByUser(int userId)
-        {
-            return await _context.Reservations
-                .Where(r => r.UserId == userId && r.Status == ReservationStatus.Active)
-                .Include(r => r.BookCopy)
-                .ToListAsync();
-        }
-
         public async Task<IEnumerable<Reservation>> GetReservationHistoryOfUser(int userId)
         {
             return await _context.Reservations
@@ -42,7 +34,7 @@ namespace ServerLibrary.Repositories.Implementations
             if (reservation == null || reservation.Status != ReservationStatus.Cancelled)
                 throw new InvalidOperationException("Reservation not found or cannot be renewed.");
 
-            reservation.DueDate = reservation.DueDate.AddDays(7); 
+            reservation.DueDate = reservation.DueDate.AddDays(7);
             _context.Reservations.Update(reservation);
             await _context.SaveChangesAsync();
             return reservation;

@@ -7,7 +7,7 @@ namespace BaseLibrary.Entities
         [Key]
         public int Id { get; set; }
         [MaxLength(100)]
-        public required string Title { get; set; }
+        public string Title { get; set; }
         [MaxLength(1000)]
         public string Description { get; set; }
         public long ISBN { get; set; }

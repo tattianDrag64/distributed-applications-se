@@ -1,5 +1,5 @@
 ﻿using BaseLibrary.Entities;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;

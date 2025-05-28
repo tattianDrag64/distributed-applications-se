@@ -1,0 +1,64 @@
+﻿@page "/login"
+@inject NavigationManager NavigationManager
+@inject IUserManager UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (message != "You have been signed in" && message != null)
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+<EditForm Model="user" OnValidSubmit="HandleLogin">
+    <section class="vh-100 gradient-custom">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card text-white" style="border-radius: 1rem; background-color:DodgerBlue;">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-md-5 mt-md-4 pb-5">
+                                <h2 class="fw-bold mb-2 text-uppercase">Sign in</h2>
+                                <DataAnnotationsValidator />
+                                <div class="form-group">
+                                    <label for="email">Email address</label>
+                                    <InputText id="email" @bind-Value="user.Email" class="form-control" />
+                                    <ValidationMessage For="@(() => user.Email)" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <InputText id="password" @bind-Value="user.Password" type="password" class="form-control" />
+                                    <ValidationMessage For="@(() => user.Password)" />
+                                </div>
+                                <button class="btn btn-outline-light btn-lg px-5 mt-3" type="submit">Sign in</button>
+                            </div>
+                            <div>
+                                <p class="mb-0">
+                                    Don't have an account? <a href="register" class="text-50 fw-bold">Register here</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</EditForm>
+
+@code {
+    private LoginDTO user = new LoginDTO();
+    string message;
+
+    async Task HandleLogin()
+    {
+        message = await UserManager.Login(user);
+
+        if (message == "You have been signed in")
+        {
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            NavigationManager.NavigateTo("/myprofile");
+        }
+        else
+        {
+            message = "Invalid email or password. Please enter the correct email and/or password and try again.";
+        }
+    }
+}

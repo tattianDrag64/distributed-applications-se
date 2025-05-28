@@ -1,0 +1,31 @@
+﻿@page "/"
+@page "/search/{searchText}"
+
+@inject ISearchManager SearchManager
+@inject IBookManager ProductManager
+
+<Search />
+@if (showSearchResult)
+{
+    <BookList />
+}
+
+@code {
+
+    [Parameter]
+    public string? SearchText { get; set; } = null;
+    bool showSearchResult;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (SearchText != null)
+        {
+            showSearchResult = true;
+            await SearchManager.SearchBooks(SearchText);
+        }
+        else
+        {
+            await ProductManager.GetAllBooks();
+        }
+    }
+}

@@ -18,7 +18,7 @@ namespace Server.Controllers
         [HttpGet("getallusers")]
         public async Task<ActionResult<List<User>>> GetAllUser()
         {
-            var result = await _userService.GetAllAsync();
+            var result = await _userService.GetAllUser();
             if (result != null)
             {
                 return Ok(result);
@@ -29,7 +29,7 @@ namespace Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
+            var user = await _userService.GetUser(id);
 
             if (user != null)
             {
@@ -60,7 +60,7 @@ namespace Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser([FromRoute] int id)
         {
-            var result = await _userService.DeleteAsync(id);
+            var result = await _userService.DeleteUserFromDb(id);
             if (result != null)
             {
                 return Ok();

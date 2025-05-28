@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerLibrary.Services.Implementations
+namespace Server.Services.Implementations
 {
     public class ServicesBase<TEntity, TDto> : IServiceBase<TDto> where TEntity : class
     {

@@ -1,6 +1,6 @@
 ﻿using BaseLibrary.Entities;
 using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace ServerLibrary.Repositories.Implementations
         {
             return await _context.Reviews
                 .Where(r => r.BookId == bookId && !r.IsDeleted)
-                .Include(r => r.User)    
+                .Include(r => r.User)
                 .ToListAsync();
         }
 
@@ -31,7 +31,7 @@ namespace ServerLibrary.Repositories.Implementations
         {
             return await _context.Reviews
                  .Where(r => r.UserId == userId && !r.IsDeleted)
-                 .Include(r => r.Book)   
+                 .Include(r => r.Book)
                  .ToListAsync();
         }
     }

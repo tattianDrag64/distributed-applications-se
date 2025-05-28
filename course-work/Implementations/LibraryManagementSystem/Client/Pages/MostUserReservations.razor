@@ -1,0 +1,84 @@
+﻿@page "/MostUserReservations"
+@inject IReservationManager ReservationManager
+@inject IUserManager UserManager
+
+<MudTable Context="user" Items="@TopUsers">
+   <ToolBarContent>
+       <MudText Typo="Typo.h6">Top 10 Borrowers</MudText>
+       <MudSpacer />
+   </ToolBarContent>
+   <HeaderContent>
+       <MudTh>ID</MudTh>
+       <MudTh>First Name</MudTh>
+       <MudTh>Email Address</MudTh>
+       <MudTh>Number of Reservations</MudTh>
+   </HeaderContent>
+   <RowTemplate>
+       <MudTd DataLabel="ID">@user.Id</MudTd>
+       <MudTd DataLabel="First Name">@user.FullName</MudTd>
+       <MudTd DataLabel="Email Address">@user.Email</MudTd>
+       @foreach(var item in ReservationsByUser)
+       {
+           if(item.UserId == user.Id)
+           {
+               <MudTd DataLabel="Number of Loans">@item.ReservationsCount</MudTd>
+           }
+       }
+   </RowTemplate>
+   <PagerContent>
+       <MudTablePager />
+   </PagerContent>
+</MudTable>
+
+@code {
+   public List<User> TopUsers { get; set; } = new();
+    public List<ReservationsByUser> ReservationsByUser { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+   {
+        var reservations = await ReservationManager.GetAllReservationsAsync();
+
+        var count = reservations.GroupBy(s => s.UserId)
+           .Select(grp => new
+           {
+               userId = grp.Key,
+               reservationsCount = grp.Count()
+           }).OrderByDescending(l => l.reservationsCount).ToList();
+
+        List<int> topUsersUserId = new();
+
+       for (int index = 0; index < count.Count && index <= 9; index++)
+       {
+           ReservationsByUser lbu = new();
+           lbu.UserId = (int)count[index].userId;
+           lbu.ReservationsCount = (int)count[index].reservationsCount;
+                ReservationsByUser.Add(lbu);
+       }
+
+        foreach (var user in ReservationsByUser)
+        {
+           var topUser = await UserManager.GetUser(user.UserId);
+           TopUsers.Add(topUser);
+       }
+   }
+
+   bool BooksToBeReturned;
+   bool WhoReservationsAlot;
+   bool PopularBooks;
+
+   void ShowProductsToBeReturned()
+   {
+       _ = !BooksToBeReturned ? BooksToBeReturned = true : BooksToBeReturned = false;
+   }
+
+   void ShowWhoLoansAlot()
+   {
+       _ = !WhoReservationsAlot ? WhoReservationsAlot = true : WhoReservationsAlot = false;
+   }
+
+   void ShowPopularProducts()
+   {
+       _ = !PopularBooks ? PopularBooks = true : PopularBooks = false;
+   }
+
+}

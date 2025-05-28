@@ -1,5 +1,5 @@
 ﻿using BaseLibrary.Entities;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace ServerLibrary.Repositories.Implementations
         private readonly ApplicationDbContext _context;
 
         public IBookRepository Book { get; private set; }
-        public IAuthorRepository Author { get; private set;  }
+        public IAuthorRepository Author { get; private set; }
         public IGenreRepository Genre { get; private set; }
         public IUserRepository User { get; private set; }
         public IReviewRepository Review { get; private set; }

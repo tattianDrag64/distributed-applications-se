@@ -1,68 +1,68 @@
-﻿@using BaseLibrary.DTOs
-@using BaseLibrary.Entities
-@using ClientLibrary.Services.Interfaces
-@using MudBlazor
-@inject IAuthorManager AuthorManager
-@inject MudBlazor.DialogInstance MudDialog
+﻿@* @using BaseLibrary.DTOs *@
+@* @using BaseLibrary.Entities *@
+@* @using ClientLibrary.Services.Interfaces *@
+@* @using MudBlazor *@
+@* @inject             ClientLibrary.Services.Interfaces.IAuthorManager AuthorManager *@
+@* @inject MudBlazor.DialogInstance MudDialog *@
 
-<MudDialog>
-    <DialogContent>
-        <MudForm @ref="form" OnValidSubmit="HandleValidSubmit">
-            <MudTextField @bind-Value="AuthorDTO.Name" Label="Name" For="@(() => AuthorDTO.Name)" Required="true" 
-                          Id="name" Name="name" Autocomplete="name" />
-            <MudTextField @bind-Value="AuthorDTO.Biography" Label="Biography" For="@(() => AuthorDTO.Biography)" 
-                          Id="biography" Name="biography" Autocomplete="off" Lines="3" />
-            <MudDatePicker @bind-Date="AuthorDTO.DateOfBirth" Label="Date of Birth" />
-            <MudTextField @bind-Value="AuthorDTO.ImageUrl" Label="Image URL" />
-            <MudCheckBox T="bool" @bind-Checked="AuthorDTO.IsAlive" Label="Is Alive" />
+@* <MudDialog> *@
+@*     <DialogContent> *@
+@*         <MudForm @ref="form" OnValidSubmit="HandleValidSubmit"> *@
+@*             <MudTextField @bind-Value="AuthorDTO.Name" Label="Name" For="@(() => AuthorDTO.Name)" Required="true"  *@
+@*                           Id="name" Name="name" Autocomplete="name" /> *@
+@*             <MudTextField @bind-Value="AuthorDTO.Biography" Label="Biography" For="@(() => AuthorDTO.Biography)"  *@
+@*                           Id="biography" Name="biography" Autocomplete="off" Lines="3" /> *@
+@*             <MudDatePicker @bind-Date="AuthorDTO.DateOfBirth" Label="Date of Birth" /> *@
+@*             <MudTextField @bind-Value="AuthorDTO.ImageUrl" Label="Image URL" /> *@
+@*             <MudCheckBox T="bool" @bind-Checked="AuthorDTO.IsAlive" Label="Is Alive" /> *@
 
-            @if (!AuthorDTO.IsAlive)
-            {
-                <MudDatePicker @bind-Date="AuthorDTO.DateOfDeath" Label="Date of Death" />
-            }
-            <MudButton Type="Submit" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton>
-            <MudButton OnClick="MudDialog.Cancel" Color="Color.Default" Variant="Variant.Outlined">Cancel</MudButton>
-        </MudForm>
-    </DialogContent>
-</MudDialog>
+@*             @if (!AuthorDTO.IsAlive) *@
+@*             { *@
+@*                 <MudDatePicker @bind-Date="AuthorDTO.DateOfDeath" Label="Date of Death" /> *@
+@*             } *@
+@*             <MudButton Type="Submit" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton> *@
+@*             <MudButton OnClick="MudDialog.Cancel" Color="Color.Default" Variant="Variant.Outlined">Cancel</MudButton> *@
+@*         </MudForm> *@
+@*     </DialogContent> *@
+@* </MudDialog> *@
 
-@code {
-    [Parameter] public CreateAuthorDTO AuthorDTO { get; set; } = new();
-    [Parameter] public bool IsEdit { get; set; }
-    [Parameter] public int? AuthorId { get; set; }
+@* @code { *@
+@*     [Parameter] public CreateAuthorDTO AuthorDTO { get; set; } = new(); *@
+@*     [Parameter] public bool IsEdit { get; set; } *@
+@*     [Parameter] public int? AuthorId { get; set; } *@
 
-    MudForm form;
+@*     MudForm form; *@
 
-    async Task HandleValidSubmit()
-    {
-        if (IsEdit && AuthorId.HasValue)
-        {
-            var author = new Author
-            {
-                Id = AuthorId.Value,
-                Name = AuthorDTO.Name,
-                Biography = AuthorDTO.Biography,
-                DateOfBirth = AuthorDTO.DateOfBirth,
-                ImageUrl = AuthorDTO.ImageUrl,
-                IsAlive = AuthorDTO.IsAlive,
-                DateOfDeath = AuthorDTO.DateOfDeath
-            };
-            await AuthorManager.UpdateAuthor(author);
-        }
-        else
-        {
-            var author = new Author
-            {
-                Name = AuthorDTO.Name,
-                Biography = AuthorDTO.Biography,
-                DateOfBirth = AuthorDTO.DateOfBirth,
-                ImageUrl = AuthorDTO.ImageUrl,
-                IsAlive = AuthorDTO.IsAlive,
-                DateOfDeath = AuthorDTO.DateOfDeath
-            };
-            await AuthorManager.AddAuthor(author);
-        }
+@*     async Task HandleValidSubmit() *@
+@*     { *@
+@*         if (IsEdit && AuthorId.HasValue) *@
+@*         { *@
+@*             var author = new Author *@
+@*             { *@
+@*                 Id = AuthorId.Value, *@
+@*                 Name = AuthorDTO.Name, *@
+@*                 Biography = AuthorDTO.Biography, *@
+@*                 DateOfBirth = AuthorDTO.DateOfBirth, *@
+@*                 ImageUrl = AuthorDTO.ImageUrl, *@
+@*                 IsAlive = AuthorDTO.IsAlive, *@
+@*                 DateOfDeath = AuthorDTO.DateOfDeath *@
+@*             }; *@
+@*             await AuthorManager.UpdateAuthor(author); *@
+@*         } *@
+@*         else *@
+@*         { *@
+@*             var author = new Author *@
+@*             { *@
+@*                 Name = AuthorDTO.Name, *@
+@*                 Biography = AuthorDTO.Biography, *@
+@*                 DateOfBirth = AuthorDTO.DateOfBirth, *@
+@*                 ImageUrl = AuthorDTO.ImageUrl, *@
+@*                 IsAlive = AuthorDTO.IsAlive, *@
+@*                 DateOfDeath = AuthorDTO.DateOfDeath *@
+@*             }; *@
+@*             await AuthorManager.AddAuthor(author); *@
+@*         } *@
 
-        MudDialog.Close(DialogResult.Ok(true));
-    }
-}
+@*         MudDialog.Close(DialogResult.Ok(true)); *@
+@*     } *@
+@* } *@

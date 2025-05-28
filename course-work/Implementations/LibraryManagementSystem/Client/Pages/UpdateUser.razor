@@ -1,0 +1,30 @@
+﻿@page "/updateuser"
+@inject ILocalStorageService LocalStorage;
+@inject IUserManager UserManager
+
+<h3 class="mb-3">Uppdatera uppgifter</h3>
+
+<EditForm Model="updatedUser" OnSubmit="SubmitUser">
+    <div class="mb-3">
+        <label for="firstname">Förnamn</label>
+        <InputText id="firstname" @bind-Value="updatedUser.FullName" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Spara</button>
+</EditForm>
+
+@code {
+    User user = new User();
+    UserDTO updatedUser = new UserDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+        user = await UserManager.GetUserByEmail(userEmail);
+    }
+
+    private async Task SubmitUser()
+    {
+        updatedUser.IsActive = user.IsActive;
+        await UserManager.UpdateUserinformation(updatedUser, user.Id);
+    }
+}

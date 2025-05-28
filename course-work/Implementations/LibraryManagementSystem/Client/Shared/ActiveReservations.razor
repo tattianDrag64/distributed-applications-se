@@ -1,0 +1,52 @@
+﻿@inject IReservationManager ReservationManager
+@page "/activereservations"
+
+@if (Reservations != null || Reservations != null)
+{
+   <MudTable Context="reservation" Items="@Reservations">
+       <ToolBarContent>
+           <MudText Typo="Typo.h6">Active Reservations</MudText>
+           <MudSpacer />
+       </ToolBarContent>
+       <HeaderContent>
+           <MudTh>#</MudTh>
+           <MudTh>Member</MudTh>
+           <MudTh>Email Address</MudTh>
+           <MudTh>Title</MudTh>
+           <MudTh>Copy ID</MudTh>
+           <MudTh>Return</MudTh>
+       </HeaderContent>
+       <RowTemplate>
+               <MudTd DataLabel="#">@(currentCount++)</MudTd>
+            <MudTd DataLabel="Member">@reservation.User.FullName </MudTd>
+            <MudTd DataLabel="Email Address">@reservation.User.Email</MudTd>
+            <MudTd DataLabel="Title">@reservation.BookCopy.Book.Title</MudTd>
+            <MudTd DataLabel="Copy ID">@reservation.BookCopy.Id</MudTd>
+            <MudTd DataLabel="Return"><b>@reservation.DueDate.ToString("d")</b></MudTd>
+       </RowTemplate>
+       <PagerContent>
+           <MudTablePager />
+       </PagerContent>
+   </MudTable>
+}
+
+@code {
+   public List<Reservation> Reservations { get; set; } = new();
+   private int currentCount = 1;
+
+   protected override async Task OnInitializedAsync()
+   {
+       var result = await ReservationManager.GetAllReservationsAsync();
+
+       if (result != null)
+       {
+           foreach (var activeReservation in result)
+           {
+               if (activeReservation.IsReturned == false)
+               {
+                   Reservations.Add(activeReservation);
+               }
+           }
+       }
+   }
+}

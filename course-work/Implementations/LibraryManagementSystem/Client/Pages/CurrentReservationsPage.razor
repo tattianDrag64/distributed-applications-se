@@ -1,0 +1,76 @@
+﻿@page "/currentReservations"
+@using BaseLibrary.Entities
+@inject IUserManager UserManager
+@inject ILocalStorageService LocalStorage;
+@inject NavigationManager NavigationManager
+@inject IReservationManager ReservationManager
+@inject IBookManager BookManager
+
+<h3>Current Loans:</h3>
+
+<table class="table mb-5">
+  <thead class="thead-light">
+      <tr>
+          <th>Title</th>
+          <th>Published Year</th>
+          <th>Author</th>
+      </tr>
+  </thead>
+  <tbody>
+      @foreach (var currentLoan in CurrentReservations)
+      {
+          <tr>
+              <td>@currentLoan.Title</td>
+              <td>@currentLoan.PublishedDate.ToString("yyyy")</td>
+              <td>@currentLoan.Author.Name</td>
+          </tr>
+      }
+  </tbody>
+</table>
+<h3>Returned Loans</h3>
+<table class="table mb-5">
+  <thead class="thead-light">
+      <tr>
+          <th>Title</th>
+          <th>Published Year</th>
+          <th>Author</th>
+      </tr>
+  </thead>
+  <tbody>
+      @foreach (var previousLoan in PreviousReservations)
+      {
+          <tr>
+              <td>@previousLoan.Title</td>
+              <td>@previousLoan.PublishedDate.ToString("yyyy")</td>
+              <td>@previousLoan.Author.Name</td>
+          </tr>
+      }
+  </tbody>
+</table>
+
+@code {
+  public User? User { get; set; }
+  public List<Reservation> AllUserReservations { get; set; } = new();
+  public List<Book> PreviousReservations { get; set; } = new();
+  public List<Book> CurrentReservations { get; set; } = new();
+
+  protected override async Task OnInitializedAsync()
+  {
+      var userEmail = await LocalStorage.GetItemAsync<string>("email");
+      User = await UserManager.GetUserByEmail(userEmail);
+      AllUserReservations = await ReservationManager.GetReservationsByUserId(User.Id);
+
+      foreach (var reservation in AllUserReservations)
+      {
+          var product = await BookManager.GetBookById(reservation.BookCopy.BookId);
+          if (reservation.IsReturned)
+          {
+              PreviousReservations.Add(product);
+          }
+          else
+          {
+              CurrentReservations.Add(product);
+          }
+      }
+  }
+}

@@ -1,0 +1,125 @@
+﻿@page "/employees"  
+@inject IUserManager UserManager  
+@inject IDialogService DialogService  
+
+@if (message == "Updated")  
+{  
+   <MudAlert Severity="Severity.Success">@message</MudAlert>  
+}  
+
+@if (editUser)  
+{  
+   <EditForm Model="EmployeeToUpdate" OnValidSubmit="UpdateEmployee">  
+       <table class="table">  
+           <thead class="thead-dark">  
+               <tr>  
+                   <th scope="col">Full Name</th>  
+                   <th scope="col">Email</th>  
+                   <th scope="col">Member Since</th>  
+                   <th scope="col">Authorized Admin</th>  
+                   <th scope="col"></th>  
+               </tr>  
+           </thead>  
+           <tbody>  
+               <tr>  
+                   <td><input @bind="EmployeeToUpdate.FullName" /></td>  
+                   <td>@EmployeeToEdit.Email</td>  
+                   <td>@EmployeeToEdit.CreatedAt.ToString("d")</td>  
+                   <td><input type="checkbox" @bind="isAdmin" /></td>  
+                   <td><button type="submit" class="btn btn-primary">Save</button></td>  
+               </tr>  
+           </tbody>  
+       </table>  
+   </EditForm>  
+}  
+
+@if (AllEmployees != null && AllEmployees.Count > 0)  
+{  
+   <MudTable Context="employee" Items="@AllEmployees">  
+       <ToolBarContent>  
+           <MudText Typo="Typo.h6">Employees</MudText>  
+           <MudSpacer />  
+       </ToolBarContent>  
+       <HeaderContent>  
+           <MudTh>Full Name</MudTh>  
+           <MudTh>Email</MudTh>  
+           <MudTh>Member Since</MudTh>  
+           <MudTh>Authorized Admin</MudTh>  
+           <MudTh></MudTh>  
+       </HeaderContent>  
+       <RowTemplate>  
+           <MudTd DataLabel="Full Name">@employee.FullName</MudTd>  
+           <MudTd DataLabel="Email">@employee.Email</MudTd>  
+           <MudTd DataLabel="Member Since">@employee.CreatedAt.ToString("d")</MudTd>  
+           @if (employee.role == SD.Role.Admin)  
+           {  
+               <MudTd DataLabel="Authorized Admin">Yes</MudTd>  
+           }  
+           else  
+           {  
+               <MudTd DataLabel="Authorized Admin">No</MudTd>  
+           }  
+           <MudTd>  
+               <MudButton @onclick="() => EditEmployee(employee)"><MudIcon Icon="@Icons.Material.Filled.Edit"></MudIcon></MudButton>  
+               <MudButton @onclick="() => DeleteEmployee(employee.Id)"><MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon></MudButton>  
+           </MudTd>  
+       </RowTemplate>  
+       <PagerContent>  
+           <MudTablePager />  
+       </PagerContent>  
+   </MudTable>  
+}  
+
+@code {  
+   List<User> AllEmployees = new List<User>();  
+   UserDTO EmployeeToUpdate = new UserDTO();  
+   User EmployeeToEdit = new User();  
+   int userId;  
+   bool editUser;  
+   bool isAdmin;  
+   string? message;  
+
+   protected override async Task OnInitializedAsync()  
+   {  
+       AllEmployees = await UserManager.GetEmployees();  
+   }  
+
+   private void EditEmployee(User employee)  
+   {  
+       EmployeeToUpdate.FullName = employee.FullName;  
+       EmployeeToEdit = employee;  
+       userId = employee.Id;  
+
+       editUser = true;  
+   }  
+
+   private async Task UpdateEmployee()  
+   {  
+       EmployeeToUpdate.role = isAdmin ? SD.Role.Admin : SD.Role.Librarian;  
+       editUser = false;
+        await UserManager.UpdateUserinformation(EmployeeToUpdate, userId);
+        AllEmployees = await UserManager.GetEmployees();  
+       message = "Updated";  
+   }  
+
+   public async Task DeleteEmployee(int id)  
+   {  
+       var parameters = new DialogParameters  
+       {  
+           { "ContentText", "Are you sure you want to delete this employee? This action cannot be undone." },  
+           { "ButtonText", "Delete" },  
+           { "Color", Color.Error },  
+           { "Id", id }  
+       };  
+
+       var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };  
+
+       var dialog = await DialogService.ShowAsync<DeleteUser>("Delete Employee", parameters, options);  
+
+       var result = await dialog.Result;  
+       if (result.Data is true)  
+       {  
+           AllEmployees = await UserManager.GetEmployees();  
+       }  
+   }  
+}

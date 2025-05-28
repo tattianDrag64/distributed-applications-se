@@ -1,0 +1,155 @@
+﻿@page "/event"  
+@inject IEventManager EventManager  
+@inject NavigationManager NavigationManager  
+@inject IDialogService DialogService  
+
+<AuthorizeView Roles="Librarian, Admin">  
+   @if (editEvent)  
+   {  
+       <EditForm Context="_context" Model="EventToUpdate" OnSubmit="SaveEditEvent">  
+           <table class="table">  
+               <thead class="thead-light">  
+                   <tr>  
+                       <th>Event</th>  
+                       <th>First Name</th>  
+                       <th>Last Name</th>  
+                       <th>Date</th>  
+                   </tr>  
+               </thead>  
+               <tbody>  
+                   <tr>  
+                       <td><input type="text" @bind-value="EventToUpdate.Title" /></td>  
+                       <td><input type="text" @bind-value="EventToUpdate.Organizer.FullName" /></td>  
+                       <td><input type="text" @bind-value="EventToUpdate.EventDate" /></td>  
+                       <td><button type="submit" class="btn btn-primary">Save</button></td>  
+                   </tr>  
+               </tbody>  
+           </table>  
+       </EditForm>  
+   }  
+</AuthorizeView>  
+
+@if (AllEvents == null)  
+{  
+   <h4>Loading...</h4>  
+}  
+else if (AllEvents.Count == 0)  
+{  
+   <h4>No events available at the moment</h4>  
+}  
+else  
+{  
+   <MudTable Items="@AllEvents" Hover="@hover" Filter="new Func<EventLibrary,bool>(FilterFunc1)" @bind-SelectedItem="EventToUpdate">  
+       <ToolBarContent>  
+           <MudText Typo="Typo.h6">Events</MudText>  
+           <MudSpacer />  
+           <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>  
+       </ToolBarContent>  
+       <HeaderContent>  
+           <MudTh>Event</MudTh>  
+           <MudTh>Speaker</MudTh>  
+           <MudTh>Date</MudTh>  
+           <MudTh>Time</MudTh>  
+       </HeaderContent>  
+       <RowTemplate>  
+           <MudTd DataLabel="EventLibrary"><a href="Id/@context.Id"></a>@context.Title</MudTd>  
+           <MudTd DataLabel="Organizer">@context.Organizer.FullName</MudTd>  
+           <MudTd DataLabel="Date">@context.EventDate.ToShortDateString()</MudTd>  
+           <AuthorizeView Context="_context" Roles="Librarian, Admin">  
+               <MudTd DataLabel="EditAndDelete" HorizontalAlignment="HorizontalAlignment.Right">  
+                   <MudButton @onclick="() => EditEvent(context.Id, context)"><MudIcon Icon="@Icons.Material.Filled.Edit"></MudIcon></MudButton>  
+                   <MudButton @onclick="() => DeleteEvent(context.Id)"><MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon></MudButton>  
+               </MudTd>  
+           </AuthorizeView>  
+       </RowTemplate>  
+       <PagerContent>  
+           <MudTablePager />  
+       </PagerContent>  
+   </MudTable>  
+}  
+
+<br />  
+
+@if (registerEvent)  
+{  
+   <RegisterEvent></RegisterEvent>  
+}  
+
+@code {  
+   [Parameter]  
+   public int Id { get; set; }
+    public List<EventLibrary> AllEvents { get; set; }
+    public EventLibrary CreateEvent { get; set; } = new();  
+   public EventLibrary EventToUpdate { get; set; } = new();  
+   public DateTime TodaysDate { get; set; } = DateTime.Now;  
+   private string searchString1 = "";  
+   private bool registerEvent;  
+   private bool hover = true;  
+   private bool editEvent;  
+   private string message;  
+   private int eventId;  
+
+   protected override async Task OnInitializedAsync()  
+   {
+        AllEvents = await EventManager.GetAllEvents();
+   }
+
+    public async Task EditEvent(int id, EventLibrary eventToUpdate)
+    {  
+       editEvent = true;  
+       eventId = id;  
+       EventToUpdate = eventToUpdate;  
+   }  
+
+   public async Task SaveEditEvent()  
+   {  
+       await EventManager.UpdateEvent(eventId, EventToUpdate);  
+       editEvent = false;  
+   }  
+
+   public async Task DeleteEvent(int id)  
+   {  
+       var parameters = new DialogParameters();  
+       parameters.Add("ContentText", "Are you sure you want to delete this event? This action cannot be undone.");  
+       parameters.Add("ButtonText", "Delete");  
+       parameters.Add("Color", Color.Error);  
+       parameters.Add("Id", id);  
+
+       var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };  
+
+       var dialog = DialogService.Show<DeleteEvent>("Delete Event", parameters, options);  
+
+       var result = await dialog.Result;  
+       if (!result.Canceled)  
+       {  
+           AllEvents = await EventManager.GetAllEvents();  
+       }  
+   }  
+
+   public async Task AddEvent()  
+   {  
+       CreateEvent.EventDate = TodaysDate;  
+       var result = await EventManager.CreateEvent(CreateEvent);  
+       _ = result == null ? (message = $"The event \"{CreateEvent.Title}\" has been added") : (message = result);  
+   }  
+
+   void ShowRegisterEvent()  
+   {  
+       _ = !registerEvent ? registerEvent = true : registerEvent = false;  
+   }
+
+    private bool FilterFunc1(EventLibrary eventItem) => FilterFunc(eventItem, searchString1);
+
+    private bool FilterFunc(EventLibrary eventItem, string searchString)
+    {  
+       if (string.IsNullOrWhiteSpace(searchString))  
+           return true;  
+       if (eventItem.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))  
+           return true;
+        if (eventItem.Organizer.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{eventItem.Title} {eventItem.Organizer.FullName}".Contains(searchString))
+            return true;  
+       return false;  
+   }  
+}

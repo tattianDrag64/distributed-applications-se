@@ -1,0 +1,61 @@
+﻿@inject IEventManager EventManager
+@page "/registerevent"
+@using BaseLibrary.Entities
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Register new event</h5>
+        <EditForm Model="CreateEvent" OnSubmit="AddEvent">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label for="title">Title</label>
+                <InputText Id="title" class="form-control" @bind-Value="CreateEvent.Title" />
+                <ValidationMessage For="@(() => CreateEvent.Title)" />
+            </div>
+            <div class="form-group">
+                <label for="firstname">Organizer's first name</label>
+                <InputText Id="fullname" class="form-control" @bind-Value="CreateEvent.Organizer.FullName" />
+                <ValidationMessage For="@(() => CreateEvent.Organizer.FullName)" />
+            </div>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <InputDate Id="date" class="form-control" @bind-Value="TodaysDate" />
+                <ValidationMessage For="@(() => CreateEvent.EventDate)" />
+            </div>
+            <div>
+                <br />
+                <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => AddEvent()">Register event</MudButton>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (message == $"\"{CreateEvent.Title}\" has been added")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == "An error occurred. Did you fill in everything correctly?")
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+@code {
+    public List<EventLibrary> AllEvents { get; set; }
+    public EventLibrary CreateEvent { get; set; } = new();
+    public DateTime TodaysDate { get; set; } = DateTime.Now;
+    public string message = "";
+
+    public async Task AddEvent()
+    {
+        CreateEvent.EventDate = TodaysDate;
+        var result = await EventManager.CreateEvent(CreateEvent);
+        if (result == $"The event \"{CreateEvent.Title}\" has been added")
+        {
+            message = $"\"{CreateEvent.Title}\" has been added";
+        }
+        else if (result == "Could not add event")
+        {
+            message = "An error occurred. Did you fill in everything correctly?";
+        }
+    }
+}

@@ -1,6 +1,6 @@
 ﻿using BaseLibrary.Entities;
 using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace ServerLibrary.Repositories.Implementations
         public async Task<IEnumerable<Genre>> GetGenresWithBooksAsync()
         {
             return await _context.Genres
-            .Include(g => g.Books) 
+            .Include(g => g.Books)
             .ToListAsync();
         }
     }

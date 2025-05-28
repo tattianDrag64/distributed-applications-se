@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ServerLibrary.Services.Interfaces
 {
-    public interface IUserService : IServiceBase<UserDTO>
+    public interface IUserService 
     {
         //Task<Response<RegisterDTO>> RegisterUserAsync(RegisterDTO register, CancellationToken cancellationToken = default);
         //Task<(string accessToken, string refreshToken)> LoginUserAsync(LoginDTO login, CancellationToken cancellationToken = default);
@@ -36,6 +36,10 @@ namespace ServerLibrary.Services.Interfaces
         Task<string> Login(LoginDTO model);
         Task<string> Register(RegisterDTO model);
         Task<string> GetUserByEmail(string email);
+        Task<List<User>> GetAllUser();
+        Task<User> GetUser(int id);
+        Task DeleteUserFromAuthDbContext(string email);
+        Task<ServiceResponse<string>> DeleteUserFromDb(int id);
         //Task RegisterAdmin(RegisterDTO model);
 
     }

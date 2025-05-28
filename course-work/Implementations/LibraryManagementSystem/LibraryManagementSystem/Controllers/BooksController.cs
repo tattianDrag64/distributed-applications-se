@@ -174,7 +174,7 @@ using BaseLibrary.Entities;
 using BaseLibrary.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Services.Interfaces;
+using Server.Services.Interfaces;
 
 namespace Server.Controllers
 {
@@ -193,7 +193,7 @@ namespace Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Book>>> GetAllBooks()
         {
-            var products = await _bookService.GetAllAsync();
+            var products = await _bookService.GetAllBooks();
 
             if (products == null)
             {
@@ -205,7 +205,7 @@ namespace Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetBookById(int id)
         {
-            var product = await _bookService.GetByIdAsync(id);
+            var product = await _bookService.GetBookById(id);
 
             if (product == null)
             {
@@ -215,23 +215,23 @@ namespace Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBook([FromBody] BookDTO bookToAdd)
+        public async Task<ActionResult> CreateBook([FromBody] Book bookToAdd)
         {
-            var response = await _bookService.CreateAsync(bookToAdd);
+            var response = await _bookService.CreateBook(bookToAdd);
             return Ok(response);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateBook([FromRoute] int id, [FromBody] BookDTO productToUpdate)
+        public async Task<ActionResult> UpdateBook([FromRoute] int id, [FromBody] Book productToUpdate)
         {
-            var response = await _bookService.UpdateAsync(id, productToUpdate);
+            var response = await _bookService.UpdateBook(id, productToUpdate);
             return Ok(response);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<string>> DeleteBook(int id)
         {
-            var response = await _bookService.DeleteAsync(id);
+            var response = await _bookService.DeleteBook(id);
             return Ok(response);
         }
 

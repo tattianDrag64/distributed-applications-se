@@ -1,7 +1,10 @@
 ﻿using BaseLibrary.DTOs;
 using BaseLibrary.Entities;
 using BaseLibrary.Responses;
+using BaseLibrary.Utility;
 using Microsoft.AspNetCore.Identity;
+using ServerLibrary.Data.AppDbCon;
+using ServerLibrary.Data.AuthDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using ServerLibrary.Services.Interfaces;
 using System;
@@ -11,18 +14,20 @@ using System.Text;
 using System.Threading.Tasks;
 using static BaseLibrary.Utility.SD;
 
-namespace ServerLibrary.Services.Implementations
+namespace Server.Services.Implementations
 {
-    public class UserService : ServicesBase<User, UserDTO>, IUserService
+    public class UserService : IUserService
     {
 
-        private readonly SignInManager<User> _signInManager;
+        private readonly SignInManager<MyApplicationUser> _signInManager;
         private readonly IUserRepository _userRepository;
+        private readonly ApplicationDbContext _context;
 
-        public UserService(SignInManager<User> signInManager, IUserRepository userRepository) : base(userRepository)
+        public UserService(SignInManager<MyApplicationUser> signInManager, IUserRepository userRepository, ApplicationDbContext context) : base()
         {
             _signInManager = signInManager;
             _userRepository = userRepository;
+            _context = context;
         }
         public async Task<ServiceResponse<string>> ChangePassword(UpdateDTO editPassword)
         {
@@ -39,6 +44,48 @@ namespace ServerLibrary.Services.Implementations
             return null;
         }
 
+        public async Task DeleteUserFromAuthDbContext(string email)
+        {
+            var user = _signInManager.UserManager.Users.FirstOrDefault(x => x.Email == email);
+            if (user != null)
+            {
+                await _signInManager.UserManager.DeleteAsync(user);
+            }
+        }
+
+        public async Task<ServiceResponse<string>> DeleteUserFromDb(int id)
+        {
+            var userDb = await _userRepository.GetByIdAsync(id);
+
+            if (userDb == null)
+            {
+                return new ServiceResponse<string>
+                {
+                    Success = false,
+                    Message = "User not found"
+                };
+            }
+
+            _userRepository.Remove(userDb);
+            await _context.SaveChangesAsync();
+
+            await DeleteUserFromAuthDbContext(userDb.Email);
+            return new ServiceResponse<string> { Success = true };
+        }
+
+        public async Task<List<User>> GetAllUser()
+        {
+            var users = await _userRepository.GetAllAsync();
+            if (users != null)
+            {
+                return (List<User>)users;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public async Task<List<User>> GetEmployees()
         {
             var employees = await _userRepository.GetEmployees();
@@ -49,6 +96,19 @@ namespace ServerLibrary.Services.Implementations
         {
             var members = await _userRepository.GetMembers();
             return members;
+        }
+
+        public async Task<User> GetUser(int id)
+        {
+            var users = await _userRepository.GetByIdAsync(id);
+            if (users != null)
+            {
+                return users;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public async Task<string> GetUserByEmail(string email)
@@ -80,7 +140,7 @@ namespace ServerLibrary.Services.Implementations
 
         public async Task<string> Register(RegisterDTO model)
         {
-            var user = new User
+            var user = new MyApplicationUser
             {
                 FullName = model.FullName,
                 UserName = model.Username,
@@ -100,12 +160,13 @@ namespace ServerLibrary.Services.Implementations
         {
             var result = await _userRepository.GetAllAsync();
             return result.Where(u => u.FullName.ToLower().Contains(searchText.ToLower()) ||
-                                     u.UserName.ToLower().Contains(searchText.ToLower())).ToList();
+                                     u.Username.ToLower().Contains(searchText.ToLower())).ToList();
         }
 
         public async Task<ServiceResponse<User>> UpdateUser(UserDTO model, int id)
         {
             var dbUser = await _userRepository.GetByIdAsync(id);
+            var authUser = _signInManager.UserManager.Users.FirstOrDefault(x => x.Email == dbUser.Email);
             if (dbUser == null)
             {
                 return new ServiceResponse<User>
@@ -115,22 +176,25 @@ namespace ServerLibrary.Services.Implementations
                 };
             }
 
-            dbUser.FullName = model.FullNmae;
-            dbUser.UserName = model.UserName;
+            authUser.FullName = model.FullName;
+
+            dbUser.Username = model.UserName;
             dbUser.Email = model.Email;
-            dbUser.Address = model.Address;
-            dbUser.PhoneNumber = model.PhoneNumber;
             dbUser.role = model.role;
 
 
-            //if (user.UserRole.Equals(Role.Admin))
-            //{
-            //    await SetUserToAdmin(dbUser);
-            //}
-            //else if (user.UserRole.Equals(Role.Librarian))
-            //{
-            //    await SetUserToLibrarian(dbUser,);
-            //}
+            if (model.role.Equals(Role.Admin.ToString()))
+            {
+                await SetUserToAdmin(dbUser, authUser);
+            }
+            else if (model.role.Equals(Role.Librarian.ToString()))
+            {
+                await SetUserToLibrarian(dbUser, authUser);
+            }
+            else
+            {
+                await SetUserToMember(dbUser, authUser);
+            }
 
             _userRepository.Update(dbUser);
 
@@ -141,16 +205,27 @@ namespace ServerLibrary.Services.Implementations
             };
         }
 
-        //private async Task SetUserToAdmin(User user)
-        //{
-        //    await _signInManager.UserManager.RemoveFromRoleAsync(user, Role.Librarian.ToString());
-        //    await _signInManager.UserManager.AddToRoleAsync(user, Role.Admin.ToString());
-        //}
 
-        //private async Task SetUserToLibrarian(User user)
-        //{
-        //    await _signInManager.UserManager.RemoveFromRoleAsync(user, Role.Admin.ToString());
-        //    await _signInManager.UserManager.AddToRoleAsync(user, Role.Librarian.ToString());
-        //}
+        private async Task SetUserToAdmin(User dbUser, MyApplicationUser authUser)
+        {
+
+            await _signInManager.UserManager.RemoveFromRoleAsync(authUser, Role.Librarian.ToString());
+            await _signInManager.UserManager.AddToRoleAsync(authUser, Role.Admin.ToString());
+        }
+
+        private async Task SetUserToLibrarian(User dbUser, MyApplicationUser authUser)
+        {
+
+            await _signInManager.UserManager.RemoveFromRoleAsync(authUser, Role.Admin.ToString());
+            await _signInManager.UserManager.AddToRoleAsync(authUser, Role.Librarian.ToString());
+        }
+
+        private async Task SetUserToMember(User dbUser, MyApplicationUser authUser)
+        {
+
+            await _signInManager.UserManager.RemoveFromRoleAsync(authUser, Role.Admin.ToString());
+            await _signInManager.UserManager.RemoveFromRoleAsync(authUser, Role.Librarian.ToString());
+            await _signInManager.UserManager.AddToRoleAsync(authUser, Role.Member.ToString());
+        }
     }
 }

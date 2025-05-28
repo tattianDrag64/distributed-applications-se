@@ -1,0 +1,58 @@
+﻿@inject NavigationManager NavigationManager
+@inject ISearchManager SearchManager
+
+<MudGrid Justify="Justify.Center">
+     <MudItem xs="12" sm="6">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
+            <input @bind-value="searchText"
+                   @bind-value:event="oninput"
+                   type="search"
+                   list="products"
+                   @onkeyup="HandleSearch"
+                   class="form-control align-content-center"
+                   placeholder="Search our catalog (title, author, subject etc)"
+                   @ref="searchInput" />
+            <datalist id="products">
+                @foreach (var suggestion in suggestions)
+                {
+                    <option>@suggestion</option>
+                }
+            </datalist>
+            <div class="input-group-append">
+                <MudButton @onclick="SearchProducts"><MudIcon Icon="@Icons.Material.Filled.Search"></MudIcon></MudButton>
+            </div>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+@code {
+
+    private string searchText = string.Empty;
+    private List<string> suggestions = new List<string>();
+    protected ElementReference searchInput;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await searchInput.FocusAsync();
+        }
+    }
+
+    public void SearchProducts()
+    {
+        NavigationManager.NavigateTo($"search/{searchText}");
+    }
+
+    public async Task HandleSearch(KeyboardEventArgs args)
+    {
+        if (args.Key == null || args.Key.Equals("Enter"))
+        {
+            SearchProducts();
+        }
+        else if (searchText.Length > 1)
+        {
+            suggestions = await SearchManager.GetBookSearchSuggestions(searchText);
+        }
+    }
+}
+

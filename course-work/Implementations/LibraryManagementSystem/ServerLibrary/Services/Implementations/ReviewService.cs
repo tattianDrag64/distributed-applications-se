@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerLibrary.Services.Implementations
+namespace Server.Services.Implementations
 {
     public class ReviewService
     {

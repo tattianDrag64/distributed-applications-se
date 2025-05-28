@@ -1,6 +1,6 @@
 ﻿using BaseLibrary.Entities;
 using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace ServerLibrary.Repositories.Implementations
 {
-    public class EventRepository : Repository<Event>, IEventRepository
+    public class EventRepository : Repository<EventLibrary>, IEventRepository
     {
         private readonly ApplicationDbContext _context;
         public EventRepository(ApplicationDbContext context) : base(context)
         {
         }
-        public async Task<IEnumerable<Event>> GetUpcomingEventsAsync()
+        public async Task<IEnumerable<EventLibrary>> GetUpcomingEventsAsync()
         {
             return await _context.Events
             .Where(e => e.EventDate >= DateTime.UtcNow)

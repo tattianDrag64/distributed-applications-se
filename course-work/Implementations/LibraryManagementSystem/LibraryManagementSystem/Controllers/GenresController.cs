@@ -1,9 +1,8 @@
 ﻿using BaseLibrary.Entities;
 using Microsoft.AspNetCore.Mvc;
-using ServerLibrary.Data;
-using ServerLibrary.Repositories.Implementations;
+using Server.Services.Interfaces;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
-using ServerLibrary.Services.Interfaces;
 using System;
 
 namespace Server.Controllers
@@ -13,20 +12,22 @@ namespace Server.Controllers
     public class GenresController : ControllerBase
     {
         //private readonly ApplicationDbContext _context;
-        private readonly IGenreService _genreService;
+        //private readonly IGenreService _genreService;
         private readonly IGenreRepository _genreRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public GenresController(IGenreRepository genreRepository, IGenreService genreService, IUnitOfWork unitOfWork)
+
+        private readonly ApplicationDbContext _context;
+        public GenresController(IGenreRepository genreRepository, IUnitOfWork unitOfWork)
         {
             _genreRepository = genreRepository;
-            _genreService = genreService;
+            //_genreService = genreService;
             _unitOfWork = unitOfWork;   
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Genre>>> Get()
+        public async Task<ActionResult<List<Genre>>> GetAll()
         {
-            var categoryList = await _genreService.GetAllAsync();
+            var categoryList = await _genreRepository.GetAllAsync();
 
             if (categoryList == null)
             {
@@ -39,7 +40,7 @@ namespace Server.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
-            var category = await _genreService.GetByIdAsync(id);
+            var category = await _genreRepository.GetByIdAsync(id);
             if (category == null)
                 return NotFound("Category was not found");
             return Ok(category);

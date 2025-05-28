@@ -1,0 +1,132 @@
+﻿@page "/BookList"
+@inject ILocalStorageService LocalStorage
+@inject ISearchManager SearchManager
+@inject IReservationManager ReservationManager
+@inject IBookManager BookManager
+@inject IUserManager UserManager
+@inject IBookCopyManager BookCopyManager
+
+@implements IDisposable
+
+@if (SearchManager.Books == null)
+{
+    <h4>Loading...</h4>
+}
+else if (!SearchManager.Books.Any())
+{
+    <h4>No books found</h4>
+}
+else
+{
+    <MudTable Items="@SearchManager.Books" Context="book">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Books</MudText>
+            <MudSpacer />
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh></MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh>Author</MudTh>
+            <MudTh>Published</MudTh>
+            <MudTh>Genre</MudTh>
+            <MudTh>Type</MudTh>
+            <AuthorizeView Roles="Admin, Librarian">
+                <MudTh>Number of Copies</MudTh>
+            </AuthorizeView>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>
+                <MudImage Src="images/harry-potter-and-the-goblet-of-fire-5.jpg"
+                          Class="rounded-lg ma-4" Height="110" Alt="Book" />
+            </MudTd>
+
+            <MudTd DataLabel="Title">
+                <a href="BookById/@book.Id">@book.Title</a>
+            </MudTd>
+
+            @* <MudTd DataLabel="Author"> *@
+            @*     @if (book.Creators != null && book.Creators.Any()) *@
+            @*     { *@
+            @*         @string.Join(", ", book.Creators.Select(c => $"{c.FirstName} {c.LastName}")) *@
+            @*     } *@
+            @* </MudTd> *@
+
+            <MudTd DataLabel="Published">
+                @book.PublishedDate.ToString("yyyy/MM/dd")
+            </MudTd>
+
+            @* <MudTd DataLabel="Genre"> *@
+            @*     @if (book.Category?.Count > 1) *@
+            @*     { *@
+            @*         <span>and others</span> *@
+            @*     } *@
+            @*     else if (book.Category?.Any() == true) *@
+            @*     { *@
+            @*         @book.Category.First().CategoryName *@
+            @*     } *@
+            @* </MudTd> *@
+
+            <MudTd DataLabel="Genre">@book.Genre.Name</MudTd>
+            <MudTd DataLabel="Genre">@book.Author.Name</MudTd>
+            <AuthorizeView Roles="Admin, Librarian">
+                <MudTd>@book.TotalCopies</MudTd>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Member">
+                <MudTd>
+                    @if (AvailableReservations.Any(r => r.Id == book.Id))
+                    {
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small"
+                                   OnClick="@(() => ReserveBook(book.Id))">
+                            Reserve
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Disabled Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
+                            Not available
+                        </MudButton>
+                    }
+                </MudTd>
+            </AuthorizeView>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    public List<Book> AvailableReservations { get; set; } = new();
+    public User CurrentUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+
+        if (!string.IsNullOrWhiteSpace(userEmail))
+        {
+            CurrentUser = await UserManager.GetUserByEmail(userEmail);
+        }
+
+        AvailableReservations = await BookCopyManager.GetAllReservations();
+
+        SearchManager.BooksChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        SearchManager.BooksChanged -= StateHasChanged;
+    }
+
+    private async Task ReserveBook(int bookId)
+    {
+        if (CurrentUser is not null)
+        {
+            await ReservationManager.AddReservation(bookId, CurrentUser.Id);
+        }
+    }
+}

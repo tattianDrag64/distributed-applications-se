@@ -1,0 +1,120 @@
+﻿@page "/createbook"
+@inject IBookManager BookManager
+@inject IGenreManager GenreManager
+@inject IAuthorManager AuthorManager
+
+<MudGrid>
+    <MudItem xs="12" sm="8">
+        <MudPaper Class="pa-4">
+            <MudForm>
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">New Book</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudTextField Label="Title" @bind-Value="Book.Title" />
+                        <MudTextField Label="ISBN" @bind-Value="Book.ISBN" />
+                        <MudTextField Label="Published" @bind-Value="Book.PublishedDate" />
+                        <MudTextField Label="Page Count" @bind-Value="Book.PageCount" />
+                        <MudTextField Label="Language" @bind-Value="Book.Language" />
+                        <MudTextField Label="Cover Image URL" @bind-Value="Book.CoverImageUrl" />
+                        <MudTextField Label="Total Copies" @bind-Value="Book.TotalCopies" />
+
+                        <MudSelect T="Author" Label="Select Author" @bind-Value="Book.Author">
+                            @foreach (var author in Authors)
+                            {
+                                <MudSelectItem T="Author" Value="@author">@author.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <MudSelect T="Genre" Label="Select Genre" @bind-Value="SelectedGenre">
+                            @foreach (var genre in Genres)
+                            {
+                                <MudSelectItem T="Genre" Value="@genre">@genre.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveBook" Class="ml-auto">Save</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudForm>
+
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <MudAlert Severity="@(Message.Contains("success") ? Severity.Success : Severity.Error)">
+                    @Message
+                </MudAlert>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.subtitle2">Recently Added</MudText>
+            <MudList T="Book">
+                @foreach (var book in AddedBooks)
+                {
+                    <MudListItem T="Book">@book.Title</MudListItem>
+                }
+            </MudList>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" @onclick="ClearAddedBooks">Clear</MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    public Book Book { get; set; } = new();
+    public List<Genre> Genres { get; set; } = new();
+    public List<Author> Authors { get; set; } = new();
+    public List<Book> AddedBooks { get; set; } = new();
+    public Genre SelectedGenre { get; set; }
+    public string Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Genres = await GenreManager.GetAllGenresAsync();
+        Authors = await AuthorManager.GetAllAuthorsAsync();
+        InitializeBook();
+    }
+
+    private void InitializeBook()
+    {
+        Book = new Book
+            {
+                PublishedDate = DateTime.Today,
+                TotalCopies = 1,
+                AvailableCopies = 1
+            };
+        SelectedGenre = null;
+    }
+
+    private async Task SaveBook()
+    {
+        if (SelectedGenre == null)
+        {
+            Message = "Please select a genre.";
+            return;
+        }
+
+        Book.Genre = SelectedGenre;
+
+        var result = await BookManager.CreateBook(Book);
+        if (result != null)
+        {
+            Message = "Book added successfully.";
+            AddedBooks.Add(Book);
+            InitializeBook();
+        }
+        else
+        {
+            Message = "Failed to add book.";
+        }
+    }
+
+    private void ClearAddedBooks()
+    {
+        AddedBooks.Clear();
+    }
+}

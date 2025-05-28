@@ -1,0 +1,60 @@
+<MudNavMenu>
+   <MudNavLink Href="/" Match="NavLinkMatch.All">Library Management System</MudNavLink>
+   <AuthorizeView Roles="Librarian, Admin">
+       <MudNavLink Href="/myprofile" Icon="@Icons.Material.Filled.AccountBox" IconColor="Color.Success" Match="NavLinkMatch.Prefix">My Page</MudNavLink>
+       <MudNavGroup Title="Admin" Expanded="true">
+           <AuthorizeView Context="_context" Roles="Admin">
+               <MudNavGroup Title="Workers" Expanded="false">
+                    <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.Person" IconColor="Color.Success" Match="NavLinkMatch.Prefix">All Workers</MudNavLink>
+                    <MudNavLink Href="/searchemployee" Icon="@Icons.Material.Filled.PersonSearch" IconColor="Color.Success">Search Worker</MudNavLink>
+                    <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAddAlt1" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Register Worker</MudNavLink>
+               </MudNavGroup>
+           </AuthorizeView>
+           <MudNavGroup Title="Books" Expanded="false">
+                <MudNavLink Href="/allbooks" Icon="@Icons.Material.Filled.Subject" IconColor="Color.Success">All Books</MudNavLink>
+               <MudNavLink Href="/createbook" Icon="@Icons.Material.Filled.PlaylistAdd" IconColor="Color.Success">Add Books</MudNavLink>
+               <MudNavLink Href="/returnBooks" Icon="@Icons.Material.Filled.KeyboardReturn" IconColor="Color.Success">Return</MudNavLink>
+                <MudNavGroup Title="Genres" Expanded="false">
+                   <MudNavLink Href="/genres" Icon="@Icons.Material.Filled.Subject" IconColor="Color.Success">Genres</MudNavLink>
+               </MudNavGroup>
+           </MudNavGroup>
+           <MudNavGroup Title="Events" Expanded="false">
+               <MudNavLink Href="/event" Icon="@Icons.Material.Filled.CalendarToday" IconColor="Color.Success" Match="NavLinkMatch.Prefix">All Events</MudNavLink>
+               <MudNavLink Href="/registerevent" Icon="@Icons.Material.Filled.EditCalendar" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Create Event</MudNavLink>
+           </MudNavGroup>
+           <MudNavGroup Title="Members" Expanded="false">
+               <MudNavLink Href="/members" Icon="@Icons.Material.Filled.Person" IconColor="Color.Success">All Members</MudNavLink>
+                <MudNavLink Href="/searchmember" Icon="@Icons.Material.Filled.PersonSearch" IconColor="Color.Success">Search Members</MudNavLink>
+                <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAddAlt1" IconColor="Color.Success">Register Member</MudNavLink>
+           </MudNavGroup>
+           <MudNavGroup Title="Reports" Expanded="false">
+               <MudNavLink Href="/topbook" Icon="@Icons.Material.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Popular Books</MudNavLink>
+                <MudNavLink Href="/MostUserReservations" Icon="@Icons.Material.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Most Reservations</MudNavLink>
+               <MudNavLink Href="/activereservations" Icon="@Icons.Material.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Active Reservations</MudNavLink>
+                <MudNavLink Href="/reportViewer" Icon="@Icons.Material.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Print Reports</MudNavLink>
+           </MudNavGroup>
+       </MudNavGroup>
+   </AuthorizeView>
+
+   <AuthorizeView Roles="Member">
+       <MudNavLink Href="/allbooks" Icon="@Icons.Material.Filled.LibraryBooks" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Books</MudNavLink>
+        <MudNavLink Href="/topbook" Icon="@Icons.Material.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Popular Books</MudNavLink>
+       <MudNavGroup Title="Profile" Expanded="false">
+            <MudNavLink Href="/myprofile" Icon="@Icons.Material.Filled.AccountBox" IconColor="Color.Success" Match="NavLinkMatch.Prefix">My Page</MudNavLink>
+           <MudNavLink Href="/CurrentReservations" Icon="@Icons.Material.Filled.ArtTrack" IconColor="Color.Success" Match="NavLinkMatch.Prefix">My Reservations</MudNavLink>
+       </MudNavGroup>
+       <MudNavGroup Title="Events" Expanded="false">
+            <MudNavLink Href="/event" Icon="@Icons.Material.Filled.CalendarToday" IconColor="Color.Success" Match="NavLinkMatch.Prefix">All Seminars</MudNavLink>
+       </MudNavGroup>
+   </AuthorizeView>
+   <AuthorizeView>
+       <Authorized>
+           <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.Logout">Log Out</MudNavLink>
+       </Authorized>
+       <NotAuthorized>
+            <MudNavLink Href="/login" Icon=@Icons.Material.Filled.Login>Log In</MudNavLink>
+            <MudNavLink Href="/register" Icon=@Icons.Material.Filled.AppRegistration>Register</MudNavLink>
+       </NotAuthorized>
+   </AuthorizeView>
+   <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+</MudNavMenu>

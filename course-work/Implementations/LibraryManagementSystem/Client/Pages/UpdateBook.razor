@@ -1,0 +1,124 @@
+﻿@page "/updatebook/{Id:int}"
+@inject IBookManager BookManager
+@inject IGenreManager GenreManager
+@inject IAuthorManager AuthorManager
+@inject NavigationManager NavigationManager
+
+<MudGrid>
+    <MudItem xs="10" sm="8">
+        <MudPaper Class="pa-4">
+            <MudForm Model="Book">
+                <MudCardHeader>
+                    <h5>Edit Book Details</h5>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <MudTextField @bind-Value="Book.Title"
+                                  For="@(() => Book.Title)"
+                                  Label="Title" />
+
+                    <MudTextField @bind-Value="Book.Description"
+                                  For="@(() => Book.Description)"
+                                  Label="Description" />
+
+                    <MudTextField @bind-Value="Book.ISBN"
+                                  For="@(() => Book.ISBN)"
+                                  Label="ISBN" />
+
+                    <MudTextField @bind-Value="Book.PublishedDate"
+                                  For="@(() => Book.PublishedDate)"
+                                  Label="Publicerad" />
+
+                    <MudTextField @bind-Value="Book.PageCount"
+                                  For="@(() => Book.PageCount)"
+                                  Label="Page Count" />
+
+                    <MudTextField @bind-Value="Book.Language"
+                                  For="@(() => Book.Language)"
+                                  Label="Language" />
+
+                    <MudTextField @bind-Value="Book.CoverImageUrl"
+                                  For="@(() => Book.CoverImageUrl)"
+                                  Label="Cover Image URL" />
+
+                    <MudTextField @bind-Value="Book.TotalCopies"
+                                  For="@(() => Book.TotalCopies)"
+                                  Label="Total Copies" />
+
+                    <MudTextField @bind-Value="Book.AvailableCopies"
+                                  For="@(() => Book.AvailableCopies)"
+                                  Label="Available Copies" />
+
+                    <MudSelect T="Author" Label="Select Author" @bind-Value="SelectedAuthor" ToStringFunc="@AuthorDisplay">
+                        @foreach (var author in Authors)
+                        {
+                            <MudSelectItem T="Author" Value="@author">@author.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudSelect T="Genre" Label="Select Genre" @bind-Value="SelectedGenre" ToStringFunc="@GenreDisplay">
+                        @foreach (var genre in Genres)
+                        {
+                            <MudSelectItem T="Genre" Value="@genre">@genre.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudCardContent>
+
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="Update">Save</MudButton>
+                </MudCardActions>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <MudAlert Severity="@AlertSeverity">@Message</MudAlert>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    public Book Book { get; set; } = new();
+    public List<Genre> Genres { get; set; } = new();
+    public List<Author> Authors { get; set; } = new();
+
+    public Author SelectedAuthor { get; set; }
+    public Genre SelectedGenre { get; set; }
+
+    public string Message { get; set; }
+    public Severity AlertSeverity { get; set; } = Severity.Info;
+
+    private string AuthorDisplay(Author author) => $"{author.Name}";
+    private string GenreDisplay(Genre genre) => genre.Name;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Book = await BookManager.GetBookById(Id);
+        Genres = await GenreManager.GetAllGenresAsync();
+        Authors = await AuthorManager.GetAllAuthorsAsync();
+
+        SelectedAuthor = Book.Author;
+        SelectedGenre = Book.Genre;
+    }
+
+    private async Task Update()
+    {
+        if (SelectedAuthor == null || SelectedGenre == null)
+        {
+            Message = "Please select both an author and a genre.";
+            AlertSeverity = Severity.Error;
+            return;
+        }
+
+        Book.Author = SelectedAuthor;
+        Book.AuthorId = SelectedAuthor.Id;
+
+        Book.Genre = SelectedGenre;
+        Book.GenreId = SelectedGenre.Id;
+
+        Message = await BookManager.UpdateBook(Id, Book);
+        AlertSeverity = Severity.Success;
+    }
+}

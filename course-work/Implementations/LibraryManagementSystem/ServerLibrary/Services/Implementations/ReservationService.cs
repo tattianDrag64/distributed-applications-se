@@ -9,50 +9,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerLibrary.Services.Implementations
+namespace Server.Services.Implementations
 {
-    public class ReservationService : ServicesBase<Reservation, ReservationDTO>, IReservationService
+    public class ReservationService : IReservationService
     {
         private readonly IReservationRepository _reservationRepository;
         private readonly IBookRepository _bookRepository;
         private readonly IUserRepository _userRepository;
 
         public ReservationService(IBookRepository bookRepository, IUserRepository userRepository, IReservationRepository reservationRepository)
-            : base(reservationRepository)
         {
             _bookRepository = bookRepository;
             _userRepository = userRepository;
             _reservationRepository = reservationRepository;
-        }
-
-        public async Task<Reservation> Create(int bookId, int userId)
-        {
-            // Fetch the book copy that is not loaned and matches the bookId  
-            var availableBookCopy = await _bookRepository.GetAllAsync();
-            var bookCopy = availableBookCopy.FirstOrDefault(bc => bc.Id == bookId && bc.AvailableCopies > 0);
-
-            if (bookCopy == null)
-            {
-                return null; // No available book copy found  
-            }
-
-            // Update the book's available copies  
-            bookCopy.AvailableCopies--;
-            _bookRepository.Update(bookCopy);
-
-            // Create a new reservation  
-            var reservation = new Reservation
-            {
-                BookCopyId = bookId,
-                UserId = userId,
-                ReservationDate = DateTime.UtcNow,
-                DueDate = DateTime.UtcNow.AddDays(14), 
-                Status = SD.ReservationStatus.Active,
-                IsReturned = false
-            };
-
-            await _reservationRepository.AddAsync(reservation);
-            return reservation;
         }
 
         public async Task<List<Book>> GetTopBooks()
@@ -88,6 +57,43 @@ namespace ServerLibrary.Services.Implementations
 
             _reservationRepository.Update(reservation);
             return true;
+        }
+        public async Task<Reservation> CreateReservation(int bookId, int userId)
+        {
+            // Fetch the book copy that is not loaned and matches the bookId  
+            var availableBookCopy = await _bookRepository.GetAllAsync();
+            var bookCopy = availableBookCopy.FirstOrDefault(bc => bc.Id == bookId && bc.AvailableCopies > 0);
+
+            if (bookCopy == null)
+            {
+                return null; // No available book copy found  
+            }
+
+            // Update the book's available copies  
+            bookCopy.AvailableCopies--;
+            _bookRepository.Update(bookCopy);
+
+            // Create a new reservation  
+            var reservation = new Reservation
+            {
+                BookCopyId = bookId,
+                UserId = userId,
+                ReservationDate = DateTime.UtcNow,
+                DueDate = DateTime.UtcNow.AddDays(14),
+                Status = SD.ReservationStatus.Active,
+                IsReturned = false
+            };
+
+            await _reservationRepository.AddAsync(reservation);
+            return reservation;
+        }
+
+        public async Task<List<Reservation>> GetReservationsById(int userId)
+        {
+            var reservations = await _reservationRepository.GetAllAsync();
+            var userReservations = reservations.Where(r => r.UserId == userId).ToList();
+
+            return userReservations;
         }
     }
 }

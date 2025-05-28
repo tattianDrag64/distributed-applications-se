@@ -1,7 +1,7 @@
 ﻿using BaseLibrary.Entities;
 using BaseLibrary.Utility;
 using Microsoft.EntityFrameworkCore;
-using ServerLibrary.Data;
+using ServerLibrary.Data.AppDbCon;
 using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ namespace ServerLibrary.Repositories.Implementations
 
         public async Task<User> GetUserByUsername(string username)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
 
         //public async Task<User> ChangeRoleAsync(int id)

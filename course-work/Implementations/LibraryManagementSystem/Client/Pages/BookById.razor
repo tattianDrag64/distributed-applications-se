@@ -1,0 +1,96 @@
+﻿@page "/bookbyid/{Id:int}"
+@using BaseLibrary.Entities
+@inject ILocalStorageService LocalStorage
+@inject IBookCopyManager BookCopyManager
+@inject IBookManager DataManager
+@inject IUserManager UserManager
+@inject IReservationManager ReservationManager
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <MudAlert Severity="@(message == "Book borrowed" ? Severity.Success : Severity.Error)">@message</MudAlert>
+}
+
+@if (Book != null)
+{
+    <MudCard Outlined="true">
+        <MudCardContent>
+            <MudImage Src="@GetBookImage(Book.Title)" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+            <MudText Typo="Typo.h6">@Book.Title</MudText>
+            <MudText Typo="Typo.body1">@Book.Author.Name</MudText>
+
+            <MudText Typo="Typo.body2">
+                This is a placeholder description for the book. It provides context or sparks interest in the reader.
+                More text here to simulate a real-world summary or blurb. The End.
+            </MudText>
+
+            <MudText Typo="Typo.body2">@Book.Genre.Name </MudText>
+        </MudCardContent>
+
+        <AuthorizeView Roles="Librarian, Admin">
+            <MudCardActions>
+                <MudButton Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" @onclick="DeleteBook">Delete Book</MudButton>
+            </MudCardActions>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="Member">
+            <MudCardActions>
+                @if (IsBookAvailable(Book.Id))
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Warning" @onclick="LoanBook">Borrow</MudButton>
+                }
+                else
+                {
+                    <MudButton Disabled Variant="Variant.Filled" Color="Color.Primary">Not Available</MudButton>
+                }
+            </MudCardActions>
+        </AuthorizeView>
+    </MudCard>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    public Book Book { get; set; }
+    public User CurrentUser { get; set; } = new();
+    public List<Book> AvailableReservations { get; set; } = new();
+    string message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Book = await DataManager.GetBookById(Id);
+        AvailableReservations = await BookCopyManager.GetAllReservations();
+
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            CurrentUser = await UserManager.GetUserByEmail(userEmail);
+        }
+    }
+
+    private async Task DeleteBook()
+    {
+        await DataManager.DeleteBook(Id);
+    }
+
+    private async Task LoanBook()
+    {
+        message = await ReservationManager.AddReservation(Book.Id, CurrentUser.Id);
+        AvailableReservations = await BookCopyManager.GetAllReservations();
+    }
+
+    private bool IsBookAvailable(int bookId)
+    {
+        return AvailableReservations.Any(copy => copy.Id == bookId);
+    }
+
+    private string GetBookImage(string title)
+    {
+        if (title.Contains("Harry", StringComparison.OrdinalIgnoreCase))
+            return "images/harry-potter-and-the-goblet-of-fire-5.jpg";
+        else if (title.Contains("Pippi", StringComparison.OrdinalIgnoreCase))
+            return "images/Pippi.jpg";
+        else
+            return "images/Random.jpg";
+    }
+}

@@ -1,11 +1,6 @@
 ﻿using BaseLibrary.Entities;
 using ClientLibrary.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClientLibrary.Services.Implementations
 {
@@ -17,32 +12,36 @@ namespace ClientLibrary.Services.Implementations
         {
             _httpClient = httpClient;
         }
+
         public async Task<List<Author>> GetAllAuthorsAsync()
         {
-            var categoryList = await _httpClient.GetFromJsonAsync<List<Author>>("api/authors");
-            if (categoryList == null)
+            var authors = await _httpClient.GetFromJsonAsync<List<Author>>("api/authors");
+            if (authors == null)
                 return null;
-            return categoryList;
+            return authors;
         }
 
         public async Task<Author> GetAuthorByIdAsync(int id)
         {
-            var category = await _httpClient.GetFromJsonAsync<Author>($"api/authors/{id}");
-            if (category == null)
+            var author = await _httpClient.GetFromJsonAsync<Author>($"api/authors/{id}");
+            if (author == null)
                 return null;
-            return category;
+            return author;
         }
-        public async Task<string> AddAuthor(Author category)
+
+        public async Task<string> AddAuthor(Author authorToAdd)
         {
-            var result = await _httpClient.PostAsJsonAsync("api/authors", category);
+            var result = await _httpClient.PostAsJsonAsync("api/authors", authorToAdd);
             if (result.IsSuccessStatusCode)
                 return await result.Content.ReadAsStringAsync();
             return null;
         }
-        public async Task UpdateAuthor(Author category)
+
+        public async Task UpdateAuthor(Author authorToUpdate)
         {
-            await _httpClient.PutAsJsonAsync($"api/authors/{category.Id}", category);
+            await _httpClient.PutAsJsonAsync($"api/authors/{authorToUpdate.Id}", authorToUpdate);
         }
+
         public async Task DeleteAuthorAsync(int id)
         {
             await _httpClient.DeleteAsync($"api/authors/{id}");

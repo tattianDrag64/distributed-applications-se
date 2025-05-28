@@ -6,15 +6,14 @@ using static BaseLibrary.Utility.SD;
 namespace BaseLibrary.Entities
 {
     // Changed to inherit from IdentityUser and removed the generic type argument  
-    public class User : IdentityUser<int>
+    public class User 
     {
-        // int Id { get; set; }
+        [Key]
+        public int Id { get; set; }
         public string? FullName { get; set; }
         public string Address { get; set; }
-        //public required string Username { get; set; }
-        public string PasswordHash { get; set; }
+        public string Username { get; set; }
         public string Email { get; set; }
-        public string PhoneNumber { get; set; }
         public Role role { get; set; }
         public string? ImageUrl { get; set; }
         public string? Description { get; set; }
@@ -24,6 +23,7 @@ namespace BaseLibrary.Entities
         public ICollection<Review> Reviews { get; set; }
         public ICollection<Penalty> Penalties { get; set; }
         public ICollection<Reservation> Reservations { get; set; }
-        public ICollection<Event> Events { get; set; }
+        public ICollection<EventLibrary> Events { get; set; }
+        public bool IsActive { get; set; }
     }
 }

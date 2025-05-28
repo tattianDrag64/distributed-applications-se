@@ -3,14 +3,17 @@
 @using BaseLibrary.Entities
 @using ClientLibrary.Services.Interfaces
 @using MudBlazor
-@inject IAuthorManager AuthorManager
+@inject ClientLibrary.Services.Interfaces.IAuthorManager AuthorManager
 @inject IDialogService DialogService
 
 <MudPaper Class="p-4">
     <MudText Typo="Typo.h4">Authors</MudText>
+
+    <MudTextField @bind-Value="SearchTerm" Label="Search Authors" Immediate="true" Class="mt-4 mb-4" />
+
     <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenAddAuthorDialog">Add Author</MudButton>
 
-    <MudTable Items="@AuthorList" Hover="true" Class="mt-4">
+    <MudTable Items="@FilteredAuthorList" Hover="true" Class="mt-4">
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh>Biography</MudTh>
@@ -31,6 +34,12 @@
 
 @code {
     List<Author> AuthorList = new();
+    private string SearchTerm { get; set; } = string.Empty;
+
+    private List<Author> FilteredAuthorList =>
+        string.IsNullOrWhiteSpace(SearchTerm)
+            ? AuthorList
+            : AuthorList.Where(a => a.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,6 +49,8 @@
     async Task RefreshAuthors()
     {
         AuthorList = await AuthorManager.GetAllAuthorsAsync();
+        // SearchTerm = string.Empty; // Optional: Reset search term on refresh
+        // StateHasChanged(); // Ensure UI updates if SearchTerm is reset or if filtering logic needs explicit trigger
     }
 
     async Task DeleteAuthor(int id)
@@ -49,11 +60,11 @@
     }
 
     void OpenAddAuthorDialog() =>
-        OpenAuthorDialog(new CreateAuthorDTO(), "Add Author", isEdit: false);
+        OpenAuthorDialog(new Author(), "Add Author", isEdit: false);
 
     void OpenEditAuthorDialog(Author author)
     {
-        var dto = new CreateAuthorDTO
+        var dto = new Author
             {
                 Name = author.Name,
                 Biography = author.Biography,
@@ -65,11 +76,11 @@
         OpenAuthorDialog(dto, "Edit Author", isEdit: true, id: author.Id);
     }
 
-    void OpenAuthorDialog(CreateAuthorDTO author, string title, bool isEdit, int? id = null)
+    async Task OpenAuthorDialog(Author author, string title, bool isEdit, int? id = null)
     {
         var parameters = new DialogParameters
         {
-            { "AuthorDTO", author },
+            { "Author", author },
             { "IsEdit", isEdit },
             { "AuthorId", id }
         };
@@ -77,12 +88,11 @@
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<AuthorFormDialog>(title, parameters, options);
 
-        dialog.Result.ContinueWith(async result =>
+        var result = await dialog.Result;
+        if (!result.Canceled)
         {
-            if (!result.Result.Cancelled)
-            {
-                await RefreshAuthors();
-            }
-        });
+            await RefreshAuthors();
+        }
+
     }
 }

@@ -1,0 +1,40 @@
+﻿@page "/editevent/{Id:int}"
+@inject IEventManager EventManager
+@inject NavigationManager NavigationManager
+
+<h3>Edit event information for: "@EventToUpdate.Title"</h3>
+<EditForm Model="EventToUpdate" OnSubmit="HandleEvent">
+    <div class="form-group col-4">
+        <label for="Title">Event:</label>
+        <InputText Id="Title" class="form-control" @bind-Value="EventToUpdate.Title" />
+        <ValidationMessage For="@(() => EventToUpdate.Title)" />
+    </div>
+    <div class="form-group col-4">
+        <label for="Firstname">First Name:</label>
+        <InputText Id="Firstname" class="form-control" @bind-Value="EventToUpdate.Organizer.FullName" />
+        <ValidationMessage For="@(() => EventToUpdate.Organizer.FullName)" />
+    </div>
+    <div class="form-group col-4">
+        <label for="Date">Date:</label>
+        <InputDate Id="Date" class="form-control" @bind-Value="EventToUpdate.EventDate" />
+        <ValidationMessage For="@(() => EventToUpdate.EventDate)" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public EventLibrary EventToUpdate { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        EventToUpdate = await EventManager.GetEventById(Id);
+    }
+
+    public async Task HandleEvent()
+    {
+        await EventManager.UpdateEvent(Id, EventToUpdate);
+        NavigationManager.NavigateTo("/event");
+    }
+}

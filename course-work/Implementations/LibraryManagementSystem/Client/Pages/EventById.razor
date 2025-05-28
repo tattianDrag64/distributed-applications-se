@@ -1,0 +1,27 @@
+﻿@page "/EventById/{Id:int}"
+@inject IEventManager EventManager
+
+@if (Event != null)
+{
+    <br />
+    <div class="col-4">
+        <h3>@Event.Title</h3>
+    </div>
+    <div class="col-4">
+        <h5>@Event.Organizer.FullName</h5>
+    </div>
+    <div class="col-4">
+        <h5>When and where</h5>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public EventLibrary Event { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Event = await EventManager.GetEventById(Id);
+    }
+}

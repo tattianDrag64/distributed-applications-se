@@ -29,7 +29,7 @@ namespace ServerLibrary.Repositories
         public async Task<bool> ValidateUser(LoginDTO userForAuth)
         {
             _user = await _userManager.FindByNameAsync(userForAuth.Email);
-            return (_user != null && await _userManager.CheckPasswordAsync(_user, userForAuth.Password));
+            return _user != null && await _userManager.CheckPasswordAsync(_user, userForAuth.Password);
         }
 
         public async Task<string> CreateToken()
@@ -56,7 +56,7 @@ namespace ServerLibrary.Repositories
         {
             var claims = new List<Claim>
            {
-               new Claim(JwtRegisteredClaimNames.Sub, _user.UserName), // Fixed 'UserName' to 'Username'  
+               new Claim(JwtRegisteredClaimNames.Sub, _user.Username), // Fixed 'UserName' to 'Username'  
                new Claim(JwtRegisteredClaimNames.Email, _user.Email)
            };
             var roles = await _userManager.GetRolesAsync(_user);

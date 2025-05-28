@@ -1,0 +1,45 @@
+﻿@page "/topbooks"  
+@inject IReservationManager ReservationManager  
+
+<MudTable Context="book" Items="Books">  
+ <ToolBarContent>  
+     <MudText Typo="Typo.h6">Popular Products</MudText>  
+     <MudSpacer />  
+ </ToolBarContent>  
+ <HeaderContent>  
+     <MudTh></MudTh>  
+     <MudTh>Title</MudTh>  
+     <MudTh>Author</MudTh>  
+     <MudTh>Published</MudTh>  
+     <MudTh>Genre</MudTh>  
+     <MudTh>Type</MudTh>  
+ </HeaderContent>  
+ <RowTemplate>  
+     @if (@book.Title.Contains("Harry"))  
+     {  
+         <MudImage Src="images/harry-potter-and-the-goblet-of-fire-5.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />  
+     }  
+     else if (@book.Title.Contains("Pippi"))  
+     {  
+         <MudImage Src="images/Pippi.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />  
+     }  
+     else  
+     {  
+         <MudImage Src="images/Random.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />  
+     }  
+     <MudTd DataLabel="Title"><a href="ProductById/@book.Id"><b>@book.Title</b></a></MudTd>  
+     <MudTd DataLabel="Author">@book.Author.Name</MudTd>  
+     <MudTd DataLabel="Published">@book.PublishedDate.ToString("yyyy")</MudTd>  
+     <MudTd DataLabel="Genre">@book.Genre.Name</MudTd>  
+     <MudTd DataLabel="Type">Book</MudTd>  
+ </RowTemplate>  
+</MudTable>  
+
+@code {  
+ public List<Book> Books { get; set; } = new List<Book>();  
+
+ protected override async Task OnInitializedAsync()  
+ {  
+     Books = await ReservationManager.GetTopBooks();  
+ }  
+}

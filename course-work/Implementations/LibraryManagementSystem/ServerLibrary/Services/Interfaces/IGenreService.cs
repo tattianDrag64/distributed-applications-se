@@ -1,11 +1,12 @@
 ﻿using BaseLibrary.DTOs;
+using ServerLibrary.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerLibrary.Services.Interfaces
+namespace Server.Services.Interfaces
 {
     public interface IGenreService : IServiceBase<GenreDTO>
     {

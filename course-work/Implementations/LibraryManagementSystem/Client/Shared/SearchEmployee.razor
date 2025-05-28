@@ -1,0 +1,160 @@
+﻿@page "/searchEmployee"
+@inject NavigationManager NavigationManager
+@inject IUserManager UserManager
+@inject IDialogService DialogService
+
+@if (editUser)
+{
+   <EditForm Model="EmployeeToUpdate" OnSubmit="UpdateUser">
+       <table class="table">
+           <thead class="thead-dark">
+               <tr>
+                   <th scope="col">Full Name</th>
+                   <th scope="col">Email</th>
+                   <th scope="col">Member Since</th>
+                   <th scope="col">Authorized Admin</th>
+                   <th scope="col"></th>
+               </tr>
+           </thead>
+           <tbody>
+               <tr>
+                   <td><input @bind="EmployeeToUpdate.FullName" /></td>
+                   <td>@EmployeeToEdit.Email</td>
+                   <td>@EmployeeToEdit.CreatedAt.ToString("d")</td>
+                   <td><input type="checkbox" @bind="isAdmin" /></td>
+                   <td><button type="submit" class="btn btn-primary">Save</button></td>
+               </tr>
+           </tbody>
+       </table>
+   </EditForm>
+}
+
+@if (message == "Updated")
+{
+   <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if(message == "No employees found")
+{
+   <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+@if (AllEmployees != null || AllEmployees.Count != 0)
+{
+   <MudTable Context="employee" Items="@AllEmployees">
+       <ToolBarContent>
+           <MudText Typo="Typo.h6">Employees</MudText>
+           <MudSpacer />
+           <MudTextField @onkeyup="HandleSearchEmployee" @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" Class="mt-0"></MudTextField>
+           <MudButton @onclick="SearchForEmployee"><MudIcon Icon="@Icons.Material.Filled.Search"></MudIcon></MudButton>
+       </ToolBarContent>
+       <HeaderContent>
+           <MudTh>Full Name</MudTh>
+           <MudTh>Email</MudTh>
+           <MudTh>Member Since</MudTh>
+           <MudTh>Authorized Admin</MudTh>
+           <MudTh></MudTh>
+       </HeaderContent>
+       <RowTemplate>
+            <MudTd DataLabel="FullName">@employee.FullName</MudTd>
+           <MudTd DataLabel="Email">@employee.Email</MudTd>
+           <MudTd>@employee.CreatedAt.ToString("d")</MudTd>
+           @if (employee.role.Equals(SD.Role.Admin))
+           {
+           <MudTd>Yes</MudTd>
+           }
+           else
+           {
+           <MudTd>No</MudTd>
+           }
+       <MudTd>
+           <MudButton @onclick="() => EditUser(employee)"><MudIcon Icon="@Icons.Material.Filled.Edit"></MudIcon></MudButton>
+           <MudButton @onclick="() => DeleteEmployee(employee.Id)"><MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon></MudButton>
+       </MudTd>
+   </RowTemplate>
+   <PagerContent>
+       <MudTablePager />
+   </PagerContent>
+</MudTable>
+}
+
+@code {
+   List<User> AllEmployees = new List<User>();
+    UserDTO EmployeeToUpdate = new UserDTO();
+    User EmployeeToEdit = new User();
+   int userId;
+   bool isAdmin;
+   bool editUser = false;
+   string message;
+   string searchText = String.Empty;
+
+
+   private async Task SearchForEmployee()
+   {
+       if (!String.IsNullOrEmpty(searchText))
+       {
+           var result = await UserManager.GetUsersBySearch(searchText);
+           if (result == null || result.Count == 0)
+           {
+               message = "No employees found";
+               AllEmployees = new();
+           }
+           else
+           {
+                AllEmployees = result.Where(u => u.role.Equals(SD.Role.Librarian) || u.role.Equals(SD.Role.Admin)).ToList();
+                message = null;
+           }
+       }
+   }
+
+   private void EditUser(User user)
+   {
+        EmployeeToUpdate.FullName = user.FullName;
+        EmployeeToUpdate.IsActive = user.IsActive;
+       EmployeeToEdit = user;
+       userId = user.Id;
+       editUser = true;
+   }
+
+   private async Task UpdateUser()
+   {
+       if (isAdmin)
+       {
+           EmployeeToUpdate.role = SD.Role.Admin;
+       }
+       else
+       {
+           EmployeeToUpdate.role = SD.Role.Librarian;
+       }
+
+       editUser = false;
+       await UserManager.UpdateUserinformation(EmployeeToUpdate, userId);
+       AllEmployees = await UserManager.GetEmployees();
+       message = "Updated";
+   }
+
+   public async Task DeleteEmployee(int id)
+   {
+       var parameters = new DialogParameters();
+       parameters.Add("ContentText", "Are you sure you want to delete the employee? This action cannot be undone.");
+       parameters.Add("ButtonText", "Delete");
+       parameters.Add("Color", Color.Error);
+       parameters.Add("Id", id);
+
+       var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+       var dialog = DialogService.Show<Pages.DeleteUser>("Delete Employee", parameters, options);
+
+       var result = await dialog.Result;
+       if (!result.Canceled)
+       {
+           AllEmployees = await UserManager.GetEmployees();
+       }
+   }
+        public async Task HandleSearchEmployee(KeyboardEventArgs args)
+   {
+       if (args.Key == null || args.Key.Equals("Enter"))
+       {
+           SearchForEmployee();
+       }
+   }
+}

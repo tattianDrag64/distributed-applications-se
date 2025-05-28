@@ -1,0 +1,38 @@
+﻿@page "/returnbooks"
+@inject IReservationManager ReservationManager
+
+<MudCard>
+    <MudCardContent>
+        <MudText Typo="Typo.h6">Return Books</MudText>
+        <MudNumericField Label="Which copy should be returned?" @bind-Value="copyToReturn"
+                         For="@(() => copyToReturn)" HelperText="Minimum value is 1."></MudNumericField>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="ReturnReservation">Return</MudButton>
+
+        @if (message == "Product returned")
+        {
+            <MudAlert Severity="Severity.Success">@message</MudAlert>
+        }
+        else if (message == "No item found with this copy ID")
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@message</MudAlert>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private int copyToReturn;
+    private string message = "";
+
+    private async Task ReturnReservation()
+    {
+        var result = await ReservationManager.ReturnReservationAsync(copyToReturn);
+        if (result)
+        {
+            message = "Book returned";
+        }
+        else
+        {
+            message = "No item found with this copy ID";
+        }
+    }
+}

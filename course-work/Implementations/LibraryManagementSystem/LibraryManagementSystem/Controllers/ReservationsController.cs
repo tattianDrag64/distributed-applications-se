@@ -1,8 +1,7 @@
 ﻿using BaseLibrary.Entities;
 using Microsoft.AspNetCore.Mvc;
-using ServerLibrary.Data;
+using Server.Services.Implementations;
 using ServerLibrary.Repositories.Interfaces;
-using ServerLibrary.Services.Implementations;
 using ServerLibrary.Services.Interfaces;
 using System;
 
@@ -41,7 +40,7 @@ namespace Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> GetLoansById(int id)
         {
-            var bookUserHas = _reservationService.GetByIdAsync(id);
+            var bookUserHas = _reservationService.GetReservationsById(id);
 
             if (bookUserHas == null)
             {
@@ -53,7 +52,7 @@ namespace Server.Controllers
         [HttpPost("{productId}")]
         public async Task<ActionResult<string>> Create([FromRoute] int bookId, [FromBody] int userId)
         {
-            Reservation reservation = await _reservationService.Create(bookId, userId);
+            Reservation reservation = await _reservationService.CreateReservation(bookId, userId);
 
             if (reservation != null)
             {
@@ -104,20 +103,6 @@ namespace Server.Controllers
         {
             var result = await _reservationService.GetTopBooks();
             return Ok(result);
-        }
-
-        [HttpGet]
-        [Route("{userId}")]
-        public async Task<ActionResult<List<Reservation>>> GetReservationsByCurrentUser(int userId)
-        {
-            var reservations = await _reservationRepository.GetActiveReservationsByUser(userId);
-
-            if (reservations == null || !reservations.Any())
-            {
-                return NotFound("No reservations found for the current user.");
-            }
-
-            return Ok(reservations);
         }
     }
 }

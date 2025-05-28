@@ -1,13 +1,13 @@
 ﻿using BaseLibrary.Entities;
-using ServerLibrary.Data;
-using ServerLibrary.Repositories.Implementations;
+using ServerLibrary.Data.AppDbCon;
+using ServerLibrary.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerLibrary.Repositories.Interfaces
+namespace ServerLibrary.Repositories.Implementations
 {
     public class PenaltyRepository : Repository<Penalty>, IPenaltyRepository
     {

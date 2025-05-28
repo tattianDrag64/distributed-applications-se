@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace ServerLibrary.Repositories.Interfaces
 {
-    public interface IEventRepository : IRepository<Event>
+    public interface IEventRepository : IRepository<EventLibrary>
     {
-        Task<IEnumerable<Event>> GetUpcomingEventsAsync();
+        Task<IEnumerable<EventLibrary>> GetUpcomingEventsAsync();
     }
 }

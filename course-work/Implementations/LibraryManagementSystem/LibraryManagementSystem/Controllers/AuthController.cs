@@ -3,15 +3,15 @@ using BaseLibrary.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using ServerLibrary.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System;
-using ServerLibrary.Data;
 using Microsoft.EntityFrameworkCore;
 using static BaseLibrary.Utility.SD;
 using BaseLibrary.Utility;
+using ServerLibrary.Data.AppDbCon;
+using ServerLibrary.Services.Interfaces;
 
 
 namespace Server.Controllers
@@ -21,13 +21,13 @@ namespace Server.Controllers
     public class AuthenticateController : ControllerBase
     {
         private readonly IUserService _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly SignInManager<MyApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly ApplicationDbContext _appDbContext;
 
         public AuthenticateController(IUserService userManager, 
-            SignInManager<User> signInManager, 
+            SignInManager<MyApplicationUser> signInManager, 
             RoleManager<IdentityRole> roleManager, 
             IConfiguration configuration, 
             ApplicationDbContext appDbContext)
@@ -109,22 +109,27 @@ namespace Server.Controllers
 
             if (model != null)
             {
-                User user = new User() 
+                MyApplicationUser user = new()
                 {
                     FullName = model.FullName,
-                    UserName = model.Username,
                     Email = model.Email,
-                    PasswordHash = _signInManager.UserManager.PasswordHasher.HashPassword(null, model.Password),
-                    role = model.role,
-                    CreatedAt = DateTime.UtcNow,
-                    DateOfBirth = model.DateOfBirth,
-                    PhoneNumber = model.PhoneNumber,
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    UserName = model.Email
+                };
+
+                User userModel = new User()
+                {
+                    FullName = model.FullName,
+                    Email = model.Email,
+                    IsActive = true,
+                    role = model.role
                 };
 
                 var result = await _signInManager.UserManager.CreateAsync(user, model.Password);
 
+
                 if (!result.Succeeded)
-                    return BadRequest("Något gick snett, försök igen.");
+                    return BadRequest("Something went wrong, please try again.");
 
                 if (model.role == Role.Librarian)
                 {
@@ -150,7 +155,7 @@ namespace Server.Controllers
                     }
                 }
 
-                _appDbContext.Users.Add(user);
+                _appDbContext.Users.Add(userModel);
                 var dbContextResult = await _appDbContext.SaveChangesAsync();
 
                 if (dbContextResult != 0)

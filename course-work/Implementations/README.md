@@ -18,7 +18,7 @@ A member can take products (books, films, audiobooks), return them. The admin re
 
 ## 🏗️ System Architecture
 
-LibraryManagementSystem/
+LibraryManagementSystem
 ├── Client/ # Blazor Frontend
 ├── Server/ # ASP.NET Core Backend
 ├── Shared/ # Shared Entities, DTOs, Responses

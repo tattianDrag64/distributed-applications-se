@@ -1,0 +1,70 @@
+﻿@inject ISeminarManager SeminarManager
+@page "/registerseminar"
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Register New Seminar</h5>
+        <EditForm Model="CreateSeminar" OnSubmit="AddSeminar">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label for="title">Title</label>
+                <InputText Id="title" class="form-control" @bind-Value="CreateSeminar.Title" />
+                <ValidationMessage For="@(() => CreateSeminar.Title)" />
+            </div>
+            <div class="form-group">
+                <label for="firstname">Speaker's First Name</label>
+                <InputText Id="firstname" class="form-control" @bind-Value="CreateSeminar.FirstName" />
+                <ValidationMessage For="@(() => CreateSeminar.FirstName)" />
+            </div>
+            <div class="form-group">
+                <label for="lastname">Speaker's Last Name</label>
+                <InputText Id="lastname" class="form-control" @bind-Value="CreateSeminar.LastName" />
+                <ValidationMessage For="@(() => CreateSeminar.LastName)" />
+            </div>
+            <div class="form-group">
+                <label for="dayandtime">Date</label>
+                <InputDate min="TodaysDate" Id="dayandtime" class="form-control" @bind-Value="TodaysDate" />
+                <ValidationMessage For="@(() => CreateSeminar.SeminarDate)" />
+            </div>
+            <div class="form-group">
+                <label for="dayandtime">Time</label>
+                <input type="time" min="08:00" max="21:00" Id="dayandtime" class="form-control" @bind-value="CreateSeminar.SeminarTime" />
+                <ValidationMessage For="@(() => CreateSeminar.SeminarTime)" />
+            </div>
+            <div>
+                <br />
+                <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => AddSeminar()">Register Seminar</MudButton>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (message == $"\"{CreateSeminar.Title}\" has been added")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == "An error occurred. Did you fill in everything correctly?")
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+@code {
+    public List<Seminarium> AllSeminars { get; set; }
+    public Seminarium CreateSeminar { get; set; } = new();
+    public DateTime TodaysDate { get; set; } = DateTime.Now;
+    public string message = "";
+
+    public async Task AddSeminar()
+    {
+        CreateSeminar.SeminarDate = TodaysDate;
+        var result = await SeminarManager.CreateSeminar(CreateSeminar);
+        if (result == $"Seminar \"{CreateSeminar.Title}\" has been added")
+        {
+            message = $"\"{CreateSeminar.Title}\" has been added";
+        }
+        else if (result == "Failed to add seminar")
+        {
+            message = "An error occurred. Did you fill in everything correctly?";
+        }
+    }
+}

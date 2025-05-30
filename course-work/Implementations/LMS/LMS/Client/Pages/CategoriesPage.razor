@@ -1,0 +1,159 @@
+﻿@page "/categories"
+@inject ICategoryManager CategoryManager
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+@if (addCategory)
+{
+    <EditForm Model=Category>
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <MudText Typo="Typo.h6">Category name</MudText>
+            <InputText Id="Title" class="form-control" @bind-Value="Category.CategoryName" />
+            <ValidationMessage For="@(() => Category.CategoryName)" />
+        </div>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" type="submit" @onclick="()=>HandleAddCategory()" class="btn btn-primary mt-2 mb-2">Save</MudButton>
+    </EditForm>
+}
+@if (!string.IsNullOrEmpty(message))
+{
+    if (message == $"{Category.CategoryName} already exists")
+    {
+        <MudAlert Severity="Severity.Warning">@message</MudAlert>
+    }
+    else
+{
+        <MudAlert Severity="Severity.Success">@message</MudAlert>
+    }
+
+}
+
+@if (update)
+{
+    <MudText Typo="Typo.h6">Update</MudText>
+    <EditForm Context="_context" Model="Category2">
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th>Category</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" @bind-value="Category2.CategoryName" /></td>
+                    <td><MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="()=>UpdateCategory()">Save</MudButton></td>
+                </tr>
+            </tbody>
+        </table>
+    </EditForm>
+}
+
+@if (Categories != null)
+{
+    <MudTable Context="category" Items="@Categories">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Categories</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="()=>AddCategoryBool()">Add Category</MudButton>
+        </ToolBarContent>
+        <ColGroup><col style="width: 70%;" /><col style="width: 10%;" /></ColGroup>
+        <HeaderContent>
+            <MudTh>Category</MudTh>
+            <MudTh></MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="CategoryName">@category.CategoryName</MudTd>
+            <AuthorizeView Roles="Admin, Librarian">
+                <MudTd>
+                    <MudButton @onclick="() => SetIdToUpdate(category.Id)"><MudIcon Icon="@Icons.Filled.Edit"></MudIcon></MudButton>
+                </MudTd>
+                <MudTd>
+                    <MudButton @onclick="() => HandleDeleteCategory(category.Id)"><MudIcon Icon="@Icons.Filled.Delete"></MudIcon></MudButton>
+                </MudTd>
+            </AuthorizeView>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+
+}
+<br />
+
+@code {
+    List<Category> Categories { get; set; } = new();
+    public Category Category { get; set; } = new();
+    public Category Category2 { get; set; } = new();
+    string message;
+    bool update;
+    bool addCategory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await CategoryManager.GetAllCategoriesAsync();
+    }
+
+    public async Task HandleDeleteCategory(int id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Are you sure you want to delete the category? This cannot be undone.");
+        parameters.Add("ButtonText", "Delete");
+        parameters.Add("Color", Color.Error);
+        parameters.Add("Id", id);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DeleteCategory>("Delete Category", parameters, options);
+
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            foreach (var category in Categories)
+            {
+                if (category.Id == id)
+                {
+                    message = $"{category.CategoryName} has been removed";
+                }
+            }
+            Categories = await CategoryManager.GetAllCategoriesAsync();
+        }
+
+    }
+
+    async Task SetIdToUpdate(int id)
+    {
+        Category2 = await CategoryManager.GetCategoryByIdAsync(id);
+        _ = update = true ? (update == false) : (update == true);
+    }
+
+    async Task UpdateCategory()
+    {
+        await CategoryManager.UpdateCategory(Category2);
+        Categories = await CategoryManager.GetAllCategoriesAsync();
+        _ = update = true ? (update == false) : (update == true);
+        message = $"{Category2.CategoryName} has been updated";
+    }
+
+    async Task HandleAddCategory()
+    {
+        var result = await CategoryManager.AddCategory(Category);
+        if (result != null)
+            message = $"{Category.CategoryName} has been added";
+        else
+            message = $"{Category.CategoryName} already exists";
+
+        Categories = await CategoryManager.GetAllCategoriesAsync();
+        addCategory = false;
+    }
+
+    async Task AddCategoryBool()
+    {
+        _ = addCategory = true ? (addCategory == false) : (addCategory == true);
+    }
+}
+
+

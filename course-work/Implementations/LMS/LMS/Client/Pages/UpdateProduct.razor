@@ -1,0 +1,151 @@
+﻿@page "/updateproduct/{Id:int}"
+@inject IProductManager ProductManager
+@inject ICategoryManager CategoryManager
+@inject NavigationManager NavigationManager
+
+<MudGrid>
+    <MudItem xs="10" sm="8">
+        <MudPaper Class="pa-4">
+            <MudForm Model=Product>
+                <MudCardHeader>
+                    <h5>Change details</h5>
+
+                </MudCardHeader>
+                <MudCardContent Class="pa-0">
+                    <MudTable Items="@Product.Creators" Elevation="0" Breakpoint="Breakpoint.Sm">
+                        <RowTemplate>
+                            <MudTd Datalabel="FirstName">
+                                <MudForm Model="@context">
+                                    <MudTextField @bind-Value="context.FirstName"
+                                                  For="@(() => context.FirstName)"
+                                                  Label="Creator's First Name" />
+                                </MudForm>
+                            </MudTd>
+                            <MudTd Datalabel="LastName">
+                                <MudForm Model="@context">
+                                    <MudTextField @bind-Value="context.LastName"
+                                                  For="@(() => context.LastName)"
+                                                  Label="Creator Last Name" />
+                                </MudForm>
+                            </MudTd>
+                            @if (CreatorCounter != 0)
+                            {
+                                <MudTd Datalabel="RemoveCreator">
+                                    <MudForm Model="@context">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete" @onclick="() => RemoveCreator(context.Id)"></MudIconButton>
+                                    </MudForm>
+                                </MudTd>
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Class="ml-auto" @onclick="AddCreator">Add additional creator</MudButton>
+                </MudCardActions>
+                <MudCardContent>
+
+                    <MudTextField @bind-Value="Product.Title"
+                                  For="@(() => Product.Title)"
+                                  Label="Title" />
+
+                    <MudTextField @bind-Value="Product.Published"
+                                  For="@(() => Product.Published)"
+                                  Label="Published" />
+
+                    <MudTextField @bind-Value="Product.NumberOfCopiesOwned"
+                                  For="@(() => Product.NumberOfCopiesOwned)"
+                                  Label="Number of copies" />
+
+                    <MudSelect T="ProductType" Label="Type" @bind-Value="Product.Type" Placeholder="Select Type" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="ProductType" Value="@ProductType.Book">@ProductType.Book.ToString()</MudSelectItem>
+                        <MudSelectItem T="ProductType" Value="@ProductType.Ebook">@ProductType.Ebook.ToString()</MudSelectItem>
+                        <MudSelectItem T="ProductType" Value="@ProductType.Movie">@ProductType.Movie.ToString()</MudSelectItem>
+                        <MudSelectItem T="ProductType" Value="@ProductType.Audiobook">@ProductType.Audiobook.ToString()</MudSelectItem>
+                    </MudSelect>
+
+                    <MudSelect T="Category" Label="Select Genre" ToStringFunc="@convertFunc" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="CategoriesToAdd">
+                        @foreach (var category in Categories)
+                        {
+                            <MudSelectItem T="Category" Value="@category">@category.CategoryName</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="UpdateTheProduct">Save</MudButton>
+                </MudCardActions>
+
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+@if (message == "The product has been updated")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == "Select at least one Category")
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public EventCallback<int> OnUpdateProduct { get; set; }
+    public Product Product { get; set; } = new();
+    public DateTime TodaysDate { get; set; } = DateTime.Now;
+    public List<Category> Categories { get; set; } = new();
+    static List<Product> addedProducts = new();
+    string message;
+    private Category value { get; set; } = new();
+    private IEnumerable<Category> CategoriesToAdd { get; set; } = new HashSet<Category>();
+    private Func<Category, string> convertFunc = ci => ci.CategoryName;
+    public int CreatorCounter { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Product = await ProductManager.GetProductById(Id);
+        Categories = await CategoryManager.GetAllCategoriesAsync();
+    }
+
+
+    public async Task UpdateTheProduct()
+    {
+        if (CategoriesToAdd.Count() == 0)
+        {
+            message = "Select at least one Category";
+
+        }
+        else
+        {
+            SetProductValues();
+            message = await ProductManager.UpdateProduct(Id, Product);
+            await OnUpdateProduct.InvokeAsync(Id);
+        }
+
+
+    }
+
+    void SetProductValues()
+    {
+        Product.Category.Clear();
+        Product.Category.AddRange(CategoriesToAdd);
+    }
+
+
+    void AddCreator()
+    {
+        CreatorCounter++;
+        Product.Creators.Add(new Creator { });
+    }
+
+    void RemoveCreator(int id)
+    {
+        CreatorCounter--;
+        var creatorToRemove = Product.Creators.FirstOrDefault(c => c.Id == id);
+        Product.Creators.Remove(creatorToRemove);
+    }
+
+}

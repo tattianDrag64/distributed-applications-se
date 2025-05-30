@@ -1,0 +1,27 @@
+﻿@page "/SeminarById/{Id:int}"
+@inject ISeminarManager SeminarManager
+
+@if(Seminar != null)
+{
+    <br />
+    <div class="col-4">
+        <h3>@Seminar.Title</h3>
+    </div>
+    <div class="col-4">
+        <h5>@Seminar.FirstName @Seminar.LastName</h5>
+    </div>
+    <div class="col-4">
+        <h5>When and where</h5>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public Seminarium Seminar { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Seminar = await SeminarManager.GetSeminarById(Id);
+    }
+}

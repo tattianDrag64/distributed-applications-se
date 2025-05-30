@@ -1,0 +1,53 @@
+﻿@inject ILoanManager LoanManager
+@page "/activeloans"
+
+@if (Loans != null || Loans.Count != 0)
+{
+    <MudTable Context="loan" Items="@Loans">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Aktiva lån</MudText>
+            <MudSpacer />
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>#</MudTh>
+            <MudTh>Member</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh>Item ID</MudTh>
+            <MudTh>Return</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="#">@(currentCount++)</MudTd>
+            <MudTd DataLabel="Member">@loan.User.FirstName @loan.User.LastName</MudTd>
+            <MudTd DataLabel="Email">@loan.User.Email</MudTd>
+            <MudTd DataLabel="Title">@loan.ProductCopy.product.Title</MudTd>
+            <MudTd DataLabel="Item ID">@loan.ProductCopy.Id</MudTd>
+            <MudTd DataLabel="Return"><b>@loan.ReturnDate.ToString("d")</b></MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    public List<Loan> Loans { get; set; } = new();
+    private int currentCount = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await LoanManager.GetAllLoansAsync();
+
+        if (result != null)
+        {
+            foreach (var activeLoan in result)
+            {
+                if (activeLoan.isReturned == false)
+                {
+                    Loans.Add(activeLoan);
+                }
+            }
+        }
+    }
+}
+

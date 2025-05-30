@@ -1,0 +1,62 @@
+﻿@page "/topproduct"
+@inject ILoanManager LoanManager
+<MudTable Context="product" Items="Products">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Popular Products</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh></MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Author</MudTh>
+        <MudTh>Published</MudTh>
+        <MudTh>Genre</MudTh>
+        <MudTh>Type</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        @if (@product.Title.Contains("Harry"))
+        {
+            <MudImage Src="images/harry-potter-and-the-goblet-of-fire-5.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        }
+        else if (@product.Title.Contains("Pippi"))
+        {
+            <MudImage Src="images/Pippi.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        }
+        else 
+        {
+        <MudImage Src="images/Random.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        }
+        <MudTd DataLabel="Title"><a href="ProductById/@product.Id"><b>@product.Title</b></a></MudTd>
+        @if (product.Creators.Count > 1)
+        {
+            <MudTd DataLabel="Creator">
+                @product.Creators[0].FirstName @product.Creators[0].LastName, etc
+            </MudTd>
+        }
+        else
+        {
+        <MudTd DataLabel="Creator">
+            @product.Creators[0].FirstName @product.Creators[0].LastName
+        </MudTd>
+        }
+        <MudTd DataLabel="Published">@product.Published.ToString("yyyy")</MudTd>
+        @if (@product.Category.Count > 1)
+        {
+            <MudTd DataLabel="Genre">@product.Category[0].CategoryName, etc</MudTd>
+        }
+        else
+        {
+        <MudTd DataLabel="Genre">@product.Category[0].CategoryName</MudTd>
+        }
+        <MudTd DataLabel="Typ">@product.Type</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    public List<Product> Products { get; set; } = new List<Product>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Products = await LoanManager.GetTopProducts();
+    }
+}

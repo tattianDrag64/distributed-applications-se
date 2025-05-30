@@ -1,0 +1,48 @@
+﻿@page "/myprofile"
+@inject IUserManager UserManager
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+<div class="container mt-4 mb-4 p-3 d-flex justify-content-center">
+    <div class="card p-4">
+        <div class=" image d-flex flex-column justify-content-center align-items-center">
+            <button class="btn btn-secondary"> <img src="https://i.imgur.com/wvxPV9S.png" height="100" width="100" /></button>
+            <span class="name mt-3">@User.FirstName</span> <span class="idd">@User.Email </span>
+            <div class="d-flex flex-row justify-content-center align-items-center gap-2"> <span><i class="fa fa-copy"></i></span> </div>
+            <AuthorizeView Context="_context" Roles="Member">
+                <div class="d-flex flex-row justify-content-center align-items-center mt-3"> </div> <div class=" d-flex mt-2">
+                    <button class="btn1 btn-dark" @onclick="NavigateToUpdateUser">Change Details</button>
+                </div> <div class="text mt-3">
+                </div>
+            </AuthorizeView>
+
+            <div class=" d-flex mt-2">
+                <button class="btn1 btn-dark" @onclick="NavigateToChangePassword">Change Password</button>
+            </div> <div class="text mt-3">
+            </div>
+            <AuthorizeView Context="_context" Roles="Member">
+                <div class=" d-flex mt-2">
+                    <button class="btn1 btn-dark" @onclick="NavigateToCurrentLoans">My Loans</button>
+                </div> <div class="text mt-4">
+                </div>
+            </AuthorizeView>
+            <div class=" px-2 rounded mt-4 date "> <span class="join">Member then @User.Created.ToShortDateString()</span> </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    public User User { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await localStorage.GetItemAsync<string>("email");
+        User = await UserManager.GetUserByEmail(userEmail);
+    }
+
+    private void NavigateToChangePassword() { NavigationManager.NavigateTo("ChangePasswordEdit"); }
+    private void NavigateToUpdateUser() { NavigationManager.NavigateTo("UpdateUser"); }
+    private void NavigateToCurrentLoans() { NavigationManager.NavigateTo("CurrentLoans"); }
+
+}

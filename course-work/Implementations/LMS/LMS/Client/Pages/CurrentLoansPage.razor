@@ -1,0 +1,94 @@
+﻿@page "/currentLoans"
+@inject IUserManager UserManager
+@inject ILocalStorageService LocalStorage;
+@inject NavigationManager NavigationManager
+@inject ILoanManager LoanManager
+@inject IProductManager ProductManager
+
+<h3>Current loans:</h3>
+
+<table class="table mb-5">
+    <thead class="thead-light">
+        <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Edition</th>
+            <th>Creator</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var currentLoan in CurrentLoans)
+        {
+
+            <tr>
+                <td>@currentLoan.Title</td>
+                <td>@currentLoan.Type</td>
+                <td>@currentLoan.Published.ToString("yyyy")</td>
+                @if (currentLoan.Creators.Count > 0)
+                {
+                    <td>@currentLoan.Creators[0].FirstName @currentLoan.Creators[0].LastName, etc</td>
+                }
+                else
+                {
+                <td>@currentLoan.Creators[0].FirstName @currentLoan.Creators[0].LastName</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+<h3>Returned loans</h3>
+<table class="table mb-5">
+    <thead class="thead-light">
+        <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Edition</th>
+            <th>Creator</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var previousLoan in PreviousLoans)
+        {
+            <tr>
+                <td>@previousLoan.Title</td>
+                <td>@previousLoan.Type</td>
+                <td>@previousLoan.Published.ToString("yyyy")</td>
+                @if (previousLoan.Creators.Count > 0)
+                {
+                    <td>@previousLoan.Creators[0].FirstName @previousLoan.Creators[0].LastName, etc</td>
+                }
+                else
+                {
+                <td>@previousLoan.Creators[0].FirstName @previousLoan.Creators[0].LastName</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    public User User { get; set; }
+    public List<Loan> AllUserLoans { get; set; } = new();
+    public List<Product> PreviousLoans { get; set; } = new();
+    public List<Product> CurrentLoans { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+        User = await UserManager.GetUserByEmail(userEmail);
+        AllUserLoans = await LoanManager.GetLoansByUserId(User.Id);
+
+        foreach (var loan in AllUserLoans)
+        {
+            var product = await ProductManager.GetProductById(loan.ProductCopy.ProductId);
+            if (loan.isReturned)
+            {
+                PreviousLoans.Add(product);
+            }
+            else
+            {
+                CurrentLoans.Add(product);
+            }
+        }
+    }
+}

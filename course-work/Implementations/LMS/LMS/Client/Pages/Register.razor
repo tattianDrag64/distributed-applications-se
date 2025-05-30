@@ -1,0 +1,120 @@
+@page "/register"
+@inject NavigationManager NavigationManager
+@inject IUserManager UserManager
+@inject ILocalStorageService LocalStorage
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6">Registration</MudText>
+            <MudForm @ref="form" @bind-Errors="@errors">
+                <MudTextField T="string" Label="First Name" Required="true" RequiredError="Required field" @bind-Value="registerUser.FirstName" />
+                <MudTextField T="string" Label="Last Name" Required="true" RequiredError="Required field" @bind-Value="registerUser.LastName" />
+                <MudTextField T="string" Label="Email Address" Required="true" RequiredError="Required field"
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "You must provide a valid email address"})" @bind-Value="registerUser.Email" />
+                <MudTextField T="string" Label="Password" HelperText="Password must contain at least 6 characters, one uppercase letter, one lowercase letter, and one number" @ref="pwField1"
+                              InputType="InputType.Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                              RequiredError="Required field" @bind-Value="registerUser.Password" />
+                <MudTextField T="string"
+                              Label="Repeat Password" HelperText="Repeat the password" InputType="InputType.Password" Required="true"
+                              Validation="@(new Func<string, string>(PasswordMatch))" @bind-Value="registerUser.ConfirmPassword" />
+                <div class="d-flex align-center justify-space-between mt-6">
+                    <AuthorizeView Context="_context" Roles=Admin>
+                        <div class="form-group">
+                            <label for="librarian">Authorized Librarian</label>
+                            <MudCheckBox T="bool" Required="false" Class="ml-n2" @bind-Checked="isLibrarian" />
+                        </div>
+                    </AuthorizeView>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="() => HandleRegistration()">Register</MudButton>
+                </div>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (message == $"{registerUser.FirstName} added")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == $"Librarian {registerUser.FirstName} added")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == $"A user is already registered with the email address \"{registerUser.Email}\"")
+{
+    <MudAlert Severity="Severity.Warning">@message</MudAlert>
+}
+
+@code {
+    private RegisterDto registerUser = new RegisterDto();
+    bool isLibrarian;
+    string[] errors = { };
+    string message = "";
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    public async Task HandleRegistration()
+    {
+        if (isLibrarian)
+        {
+            registerUser.UserRole = UserRole.Librarian;
+        }
+        else
+        {
+            registerUser.UserRole = UserRole.Member;
+        }
+
+        message = await UserManager.Register(registerUser);
+        if (message == "User has been registered")
+        {
+            if (!await LocalStorage.ContainKeyAsync("authToken"))
+            {
+                NavigationManager.NavigateTo("/login");
+                message = $"{registerUser.FirstName} added";
+            }
+            else if (registerUser.UserRole.Equals(UserRole.Librarian))
+            {
+                message = $"Librarian {registerUser.FirstName} added";
+            }
+            else
+            {
+                message = $"{registerUser.FirstName} added";
+            }
+        }
+        else if (message == "User already exists.")
+        {
+            message = $"A user is already registered with the email address \"{registerUser.Email}\"";
+        }
+        else
+        {
+            message = "An error occurred. Have you filled in all the details correctly?";
+        }
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 6)
+            yield return "Password must be at least 6 characters";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one uppercase letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one number";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords do not match";
+        return null;
+    }
+}

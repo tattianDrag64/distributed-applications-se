@@ -1,0 +1,51 @@
+﻿@page "/editseminar/{Id:int}"
+@inject ISeminarManager SeminarManager
+@inject NavigationManager NavigationManager
+
+<h3>Edit seminar information for: "@SeminarToUpdate.Title"</h3>
+
+<EditForm Model="SeminarToUpdate" OnSubmit="HandleSeminar">
+    <div class="form-group col-4">
+        <label for="Title">Seminar:</label>
+        <InputText Id="Title" class="form-control" @bind-Value="SeminarToUpdate.Title" />
+        <ValidationMessage For="@(() => SeminarToUpdate.Title)" />
+    </div>
+    <div class="form-group col-4">
+        <label for="Firstname">First Name:</label>
+        <InputText Id="Firstname" class="form-control" @bind-Value="SeminarToUpdate.FirstName" />
+        <ValidationMessage For="@(() => SeminarToUpdate.FirstName)" />
+    </div>
+    <div class="form-group col-4">
+        <label for="LastName">Last Name:</label>
+        <InputText Id="LastName" class="form-control" @bind-Value="SeminarToUpdate.LastName" />
+        <ValidationMessage For="@(() => SeminarToUpdate.LastName)" />
+    </div>
+    <div class="form-group col-4">
+        <label for="Date">Date:</label>
+        <InputDate Id="Date" class="form-control" @bind-Value="SeminarToUpdate.SeminarDate" />
+        <ValidationMessage For="@(() => SeminarToUpdate.SeminarDate)" />
+    </div>
+    <div class="form-group col-4">
+        <label for="Time">Time:</label>
+        <InputDate Id="Time" class="form-control" @bind-Value="SeminarToUpdate.SeminarTime" />
+        <ValidationMessage For="@(() => SeminarToUpdate.SeminarTime)" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save changes</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public Seminarium SeminarToUpdate { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SeminarToUpdate = await SeminarManager.GetSeminarById(Id);
+    }
+
+    public async Task HandleSeminar()
+    {
+        await SeminarManager.UpdateSeminar(Id, SeminarToUpdate);
+        NavigationManager.NavigateTo("/seminar");
+    }
+}

@@ -1,0 +1,44 @@
+﻿@page "/returnproducts"
+@inject ILoanManager LoanManager
+
+<MudCard>
+	<MudCardContent>
+		<MudText Typo="Typo.h6">Return Products</MudText>
+
+		<MudSelect T="string" Label="Select product to return" @bind-Value="selectedProductName">
+			@foreach (var product in availableProductNames)
+			{
+				<MudSelectItem T="string" Value="@product">@product</MudSelectItem>
+			}
+		</MudSelect>
+
+		<MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="ReturnLoan">Return</MudButton>
+
+		@if (message == "Product submitted")
+		{
+			<MudAlert Severity="Severity.Success">@message</MudAlert>
+		}
+		else if (message == "Nothing found with this product name")
+		{
+			<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@message</MudAlert>
+		}
+	</MudCardContent>
+</MudCard>
+
+@code {
+	private string selectedProductName;
+	private List<string> availableProductNames = new();
+	private string message = "";
+
+	protected override async Task OnInitializedAsync()
+	{
+		availableProductNames = await LoanManager.GetAvailableLoanedProductNamesAsync();
+	}
+
+	private async Task ReturnLoan()
+	{
+		var result = await LoanManager.ReturnLoanByNameAsync(selectedProductName);
+
+		message = result ? "Product submitted" : "Nothing found with this product name";
+	}
+}

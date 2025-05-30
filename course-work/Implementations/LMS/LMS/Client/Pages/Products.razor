@@ -1,0 +1,236 @@
+﻿@page "/allproducts"
+@inject ILocalStorageService LocalStorage;
+@inject ISearchManager SearchManager
+@inject ILoanManager LoanManager
+@inject IProductManager ProductManager
+@inject IUserManager UserManager
+@inject IProductCopyManager ProductCopyManager
+@inject IDialogService DialogService
+
+@if (message == "Product Borrowed")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == "Failed")
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+<AuthorizeView Roles="Librarian, Admin">
+    @if (editProduct)
+    {
+        <MudButton @onclick="CloseEditProduct"> <MudIcon Icon="@Icons.Filled.Close"></MudIcon></MudButton>
+        <UpdateProduct Id=Id OnUpdateProduct="UpdateProduct" />
+    }
+    </AuthorizeView>
+
+    @if (AllProducts == null)
+{
+    <h3 class="mt-2">No products at the moment</h3>
+}
+else if (AllProducts.Count == 0)
+{
+    <h3 class="mt-2">Loading...</h3>
+}
+else
+{
+<MudTable Context="product" Items="@AllProducts" Hover="@hover" Filter="new Func<Product,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Products</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh></MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Author</MudTh>
+        <MudTh>Published</MudTh>
+        <MudTh>Genre</MudTh>
+        <MudTh>Type</MudTh>
+        <AuthorizeView Roles="Admin, Librarian">
+            <MudTh>Number Copy</MudTh>
+        </AuthorizeView>
+    </HeaderContent>
+    <RowTemplate>
+        @if (@product.Title.Contains("Harry"))
+        {
+            <MudImage Src="images/harry-potter-and-the-goblet-of-fire-5.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        }
+        else if (@product.Title.Contains("Pippi"))
+        {
+            <MudImage Src="images/Pippi.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        }
+        else
+        {
+        <MudImage Src="images/Random.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        }
+        <MudTd DataLabel="Title"><a href="ProductById/@product.Id"><b>@product.Title</b></a></MudTd>
+        @if (product.Creators.Count > 1)
+        {
+            <MudTd DataLabel="Creators">
+                @product.Creators[0].FirstName @product.Creators[0].LastName, etc
+            </MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Creators">
+                @product.Creators[0].FirstName @product.Creators[0].LastName
+            </MudTd>
+        }
+        <MudTd DataLabel="Published">@product.Published.ToString("yyyy")</MudTd>
+        @if (product.Category.Count > 1)
+        {
+            <MudTd DataLabel="Genre">
+                @product.Category[0].CategoryName, m.fl
+            </MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Genre">
+                @product.Category[0].CategoryName
+            </MudTd>
+        }
+        <MudTd DataLabel="Typ">@product.Type</MudTd>
+
+        <AuthorizeView Roles="Admin, Librarian">
+            <MudTd>@product.NumberOfCopiesOwned</MudTd>
+        </AuthorizeView>
+        <AuthorizeView Roles="Member">
+            @if (AvailableLoans.Count == 0)
+            {
+                <MudTd>
+
+                    <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not Available</MudButton>
+
+                </MudTd>
+            }
+            else if (!AvailableLoans.Any(l => l.Id == product.Id))
+            {
+                <MudTd>
+
+                    <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not Available</MudButton>
+                </MudTd>
+            }
+            else
+            {
+                @foreach (var availableProduct in AvailableLoans)
+                {
+                    @if (availableProduct.Id == product.Id)
+                    {
+                        <MudTd>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" @onclick="() => LoanProduct(product.Id)">Borrow</MudButton>
+                        </MudTd>
+                    }
+                }
+            }
+        </AuthorizeView>
+        <AuthorizeView Context="_context" Roles="Librarian, Admin">
+            <MudTd DataLabel="EditAndDelete" HorizontalAlignment="HorizontalAlignment.Right">
+                <MudButton @onclick="() => EditProduct(product.Id)"><MudIcon Icon="@Icons.Filled.Edit"></MudIcon></MudButton>
+                <MudButton @onclick="() => DeleteProduct(product.Id)"><MudIcon Icon="@Icons.Filled.Delete"></MudIcon></MudButton>
+            </MudTd>
+        </AuthorizeView>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public List<Product>? AllProducts { get; set; } = new();
+    public List<Category> Categories { get; set; } = new();
+    public List<Product> AvailableLoans { get; set; } = new();
+    public DateTime TodaysDate { get; set; } = DateTime.Now;
+    public Product ProductToUpdate { get; set; } = new();
+    public Creator Creator { get; set; } = new();
+    public User CurrentUser { get; set; } = new();
+    private string searchString1 = "";
+    private bool hover = true;
+    private bool addCreator;
+    public bool editProduct;
+    private string message;
+    int productId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+        CurrentUser = await UserManager.GetUserByEmail(userEmail);
+
+        AvailableLoans = await ProductCopyManager.GetAllLoans();
+        AllProducts = await ProductManager.GetAllProducts();
+    }
+
+    protected async Task UpdateProduct()
+    {
+        AllProducts = await ProductManager.GetAllProducts();
+    }
+
+    public async Task EditProduct(int id)
+    {
+        editProduct = true;
+        Id = id;
+    }
+
+    public async Task DeleteProduct(int id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Are you sure you want to delete the product? This cannot be undone.");
+        parameters.Add("ButtonText", "Delete");
+        parameters.Add("Color", Color.Error);
+        parameters.Add("Id", id);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DeleteProduct>("Delete Products", parameters, options);
+
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            AllProducts = await ProductManager.GetAllProducts();
+        }
+    }
+
+    public async Task LoanProduct(int productId)
+    {
+        message = await LoanManager.AddLoan(productId, CurrentUser.Id);
+        AvailableLoans = await ProductCopyManager.GetAllLoans();
+    }
+
+    void AddCreator()
+    {
+        _ = addCreator = true ? (addCreator == false) : (addCreator == true);
+    }
+
+    void CloseEditProduct()
+    {
+        editProduct = false;
+    }
+
+    private bool FilterFunc1(Product product) => FilterFunc(product, searchString1);
+
+    private bool FilterFunc(Product product, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (product.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{product.Type}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        foreach (var category in product.Category)
+        {
+            if (category.CategoryName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        foreach (var creator in product.Creators)
+        {
+            if (creator.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase) || creator.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+}

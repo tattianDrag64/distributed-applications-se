@@ -1,0 +1,120 @@
+﻿@page "/productbyid/{Id:int}"
+@inject ILocalStorageService LocalStorage
+@inject IProductCopyManager ProductCopyManager
+@inject IProductManager DataManager
+@inject IUserManager UserManager
+@inject ILoanManager LoanManager
+
+@if (message == "Produkt lånad")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == "Gick inte")
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+@if (Product != null)
+{
+    <MudCard Outlined="true">
+        <MudCardContent>
+            @if (@Product.Title.Contains("Harry"))
+            {
+                <MudImage Src="images/harry-potter-and-the-goblet-of-fire-5.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+            }
+            else if (@Product.Title.Contains("Pippi"))
+            {
+                <MudImage Src="images/Pippi.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+            }
+            else
+            {
+                <MudImage Src="images/Random.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+            }
+            <MudText Typo="Typo.h6">@Product.Title</MudText>
+            @foreach (var c in Product.Creators)
+            {
+                <MudText Typo="Typo.body1">@c.FirstName @c.LastName</MudText>
+            }
+            <MudText Typo="Typo.body2">
+                This text is supposed to be a brief summary about the product to peak your interest
+                or to tell you more about the product if you knew nothing to begin with. Insert random sentence here.
+                And here is some more text to fill out space, which is Fredrik´s favourite. Forcing yet another random sentence in there...
+                Am I long enought to look like a proper description? This is either a book, e-book, audio book or movie. Alright, The End.
+            </MudText><br>
+            <MudText Typo="Typo.body2">
+                <b>
+                    Genre:
+                    @foreach (var c in Product.Category)
+                    {
+                        <MudText Typo="Typo.body2">@c.CategoryName </MudText>
+                    }
+                </b>
+            </MudText>
+        </MudCardContent>
+        <AuthorizeView Roles="Librarian, Admin">
+            <MudCardActions>
+                <MudButton @onclick="() => DeleteProduct()"><MudIcon Icon="@Icons.Filled.Delete"></MudIcon> Delete Product</MudButton>
+            </MudCardActions>
+        </AuthorizeView>
+        <AuthorizeView Roles="Member">
+            <MudCardActions>
+                @if (AvailableLoans.Count == 0)
+                {
+                    <MudTd>
+                        <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not Available</MudButton>
+                    </MudTd>
+                }
+                else if (!AvailableLoans.Any(l => l.Id == Product.Id))
+                {
+                    <MudTd>
+                        <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not Available</MudButton>
+                    </MudTd>
+                }
+                else
+                {
+                    @foreach (var availableProduct in AvailableLoans)
+                    {
+                        @if (availableProduct.Id == Product.Id)
+                        {
+                            <MudTd>
+                                <MudButton Variant="Variant.Filled" Color="Color.Warning" @onclick="LoanProduct">Borrow</MudButton>
+                            </MudTd>
+                        }
+                    }
+                }
+            </MudCardActions>
+        </AuthorizeView>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public Product Product { get; set; }
+    public User CurrentUser { get; set; } = new();
+    public List<Product> AvailableLoans { get; set; } = new();
+    string message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Product = await DataManager.GetProductById(Id);
+        AvailableLoans = await ProductCopyManager.GetAllLoans();
+
+        var userEmail = await LocalStorage.GetItemAsync<string>("email");
+        if (userEmail != null)
+        {
+            CurrentUser = await UserManager.GetUserByEmail(userEmail);
+        }
+    }
+
+    private void DeleteProduct()
+    {
+        DataManager.DeleteProduct(Id);
+    }
+
+    private async Task LoanProduct()
+    {
+        message = await LoanManager.AddLoan(Product.Id, CurrentUser.Id);
+        AvailableLoans = await ProductCopyManager.GetAllLoans();
+    }
+}

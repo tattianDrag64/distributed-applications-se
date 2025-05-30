@@ -1,0 +1,60 @@
+<MudNavMenu>
+	<MudNavLink Href="/" Match="NavLinkMatch.All">Library Management System</MudNavLink>
+	<AuthorizeView Roles="Librarian, Admin">
+		<MudNavLink Href="/myprofile" Icon="@Icons.Filled.AccountBox" IconColor="Color.Success" Match="NavLinkMatch.Prefix">My Page</MudNavLink>
+		<MudNavGroup Title="Admin" Expanded="true">
+			<AuthorizeView Context="_context" Roles="Admin">
+				<MudNavGroup Title="Personal" Expanded="false">
+					<MudNavLink Href="/employees" Icon="@Icons.Filled.Person" IconColor="Color.Success" Match="NavLinkMatch.Prefix">All Employees</MudNavLink>
+					<MudNavLink Href="/searchemployee" Icon="@Icons.Filled.PersonSearch" IconColor="Color.Success">Search Employee</MudNavLink>
+					<MudNavLink Href="/register" Icon="@Icons.Filled.PersonAddAlt1" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Register Employee</MudNavLink>
+				</MudNavGroup>
+			</AuthorizeView>
+			<MudNavGroup Title="Products" Expanded="false">
+				<MudNavLink Href="/allproducts" Icon="@Icons.Filled.Subject" IconColor="Color.Success">All Products</MudNavLink>
+				<MudNavLink Href="/createproduct" Icon="@Icons.Filled.PlaylistAdd" IconColor="Color.Success">Add Products</MudNavLink>
+				<MudNavLink Href="/returnProducts" Icon="@Icons.Filled.KeyboardReturn" IconColor="Color.Success">Return</MudNavLink>
+				<MudNavGroup Title="Categories" Expanded="false">
+					<MudNavLink Href="/categories" Icon="@Icons.Filled.Subject" IconColor="Color.Success">Categories</MudNavLink>
+				</MudNavGroup>
+			</MudNavGroup>
+			<MudNavGroup Title="Seminar" Expanded="false">
+				<MudNavLink Href="/seminar" Icon="@Icons.Filled.CalendarToday" IconColor="Color.Success" Match="NavLinkMatch.Prefix">All Seminars</MudNavLink>
+				<MudNavLink Href="/registerseminar" Icon="@Icons.Filled.EditCalendar" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Create Seminar</MudNavLink>
+			</MudNavGroup>
+			<MudNavGroup Title="Members" Expanded="false">
+				<MudNavLink Href="/members" Icon="@Icons.Filled.Person" IconColor="Color.Success">All Members</MudNavLink>
+				<MudNavLink Href="/searchmember" Icon="@Icons.Filled.PersonSearch" IconColor="Color.Success">Search Members</MudNavLink>
+				<MudNavLink Href="/register" Icon="@Icons.Filled.PersonAddAlt1" IconColor="Color.Success">Register Member</MudNavLink>
+			</MudNavGroup>
+			<MudNavGroup Title="Other" Expanded="false">
+				<MudNavLink Href="/topproduct" Icon="@Icons.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Popular Products</MudNavLink>
+				<MudNavLink Href="/MostUserLoans" Icon="@Icons.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Most Loans</MudNavLink>
+				<MudNavLink Href="/activeloans" Icon="@Icons.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Active Loans</MudNavLink>
+				<MudNavLink Href="/reportViewer" Icon="@Icons.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Print Reports</MudNavLink>
+			</MudNavGroup>
+		</MudNavGroup>
+	</AuthorizeView>
+
+	<AuthorizeView Roles="Member">
+		<MudNavLink Href="/allproducts" Icon="@Icons.Filled.LibraryBooks" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Products</MudNavLink>
+		<MudNavLink Href="/topproduct" Icon="@Icons.Filled.ShowChart" IconColor="Color.Success" Match="NavLinkMatch.Prefix">Popular Books</MudNavLink>
+		<MudNavGroup Title="Profile" Expanded="false">
+			<MudNavLink Href="/myprofile" Icon="@Icons.Filled.AccountBox" IconColor="Color.Success" Match="NavLinkMatch.Prefix">My Page</MudNavLink>
+			<MudNavLink Href="/CurrentLoans" Icon="@Icons.Filled.ArtTrack" IconColor="Color.Success" Match="NavLinkMatch.Prefix">My Loans</MudNavLink>
+		</MudNavGroup>
+		<MudNavGroup Title="Seminar" Expanded="false">
+			<MudNavLink Href="/seminar" Icon="@Icons.Filled.CalendarToday" IconColor="Color.Success" Match="NavLinkMatch.Prefix">All Seminars</MudNavLink>
+		</MudNavGroup>
+	</AuthorizeView>
+	<AuthorizeView>
+		<Authorized>
+			<MudNavLink Href="/logout" Icon="@Icons.Filled.Logout">Logout</MudNavLink>
+		</Authorized>
+		<NotAuthorized>
+			<MudNavLink Href="/login" Icon=@Icons.Filled.Login>Login</MudNavLink>
+			<MudNavLink Href="/register" Icon=@Icons.Filled.AppRegistration>Register</MudNavLink>
+		</NotAuthorized>
+	</AuthorizeView>
+	<MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+</MudNavMenu>

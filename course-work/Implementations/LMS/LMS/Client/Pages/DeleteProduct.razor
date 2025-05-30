@@ -1,0 +1,31 @@
+﻿@page "/deleteproduct/{Id:int}"
+@inject IProductManager ProductManager
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@ContentText</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public string ContentText { get; set; }
+    [Parameter]
+    public string ButtonText { get; set; }
+    [Parameter]
+    public Color Color { get; set; }
+
+    async Task Submit()
+    {
+        await ProductManager.DeleteProduct(Id);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+    void Cancel() => MudDialog.Cancel();
+}

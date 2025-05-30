@@ -1,0 +1,179 @@
+﻿@page "/searchMember"
+@inject IUserManager UserManager
+@inject IDialogService DialogService
+
+@if (message == "No member found")
+{
+	<MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+else if (message == "Updated")
+{
+	<MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+
+
+@if (editUser)
+{
+	<EditForm Model="userToUpdate" OnSubmit="UpdateUser">
+		<table class="table">
+			<thead class="thead-dark">
+				<tr>
+					<th scope="col">First name</th>
+					<th scope="col">Surname</th>
+					<th scope="col">Email</th>
+					<th scope="col">Member then</th>
+					<th scope="col">Active</th>
+					<th scope="col"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><input @bind="userToUpdate.FirstName" /></td>
+					<td><input @bind="userToUpdate.LastName" /></td>
+					<td>@userToEdit.Email</td>
+					<td>@userToEdit.Created.ToString("d")</td>
+					<td><input type="checkbox" @bind="userToUpdate.IsActive" /></td>
+					<td><button type="submit" class="btn btn-primary">Save</button></td>
+				</tr>
+			</tbody>
+		</table>
+	</EditForm>
+}
+
+@if (members != null || members.Count != 0)
+{
+	<MudTable Context="member" Items="@members">
+		<ToolBarContent>
+			<MudText Typo="Typo.h6">Member</MudText>
+			<MudSpacer />
+			<MudTextField @onkeyup="HandleSearchMembers" @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" Class="mt-0"></MudTextField>
+			<MudButton @onclick="SearchForMembers"><MudIcon Icon="@Icons.Material.Filled.Search"></MudIcon></MudButton>
+		</ToolBarContent>
+		<HeaderContent>
+			<MudTh>First name</MudTh>
+			<MudTh>Surname</MudTh>
+			<MudTh>Email</MudTh>
+			<MudTh>Member since</MudTh>
+			<MudTh>Active</MudTh>
+			<MudTh></MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="FirstName">@member.FirstName</MudTd>
+			<MudTd DataLabel="LastName">@member.LastName</MudTd>
+			<MudTd DataLabel="Email">@member.Email</MudTd>
+			<MudTd>@member.Created.ToString("d")</MudTd>
+			@if (member.IsActive)
+			{
+				<MudTd>Yes</MudTd>
+			}
+			else
+			{
+			<MudTd>No</MudTd>
+			}
+			<MudTd>
+				<MudButton @onclick="() => EditUser(member)"><MudIcon Icon="@Icons.Filled.Edit"></MudIcon></MudButton>
+				<MudButton @onclick="() => DeleteMember(member.Id)"><MudIcon Icon="@Icons.Filled.Delete"></MudIcon></MudButton>
+			</MudTd>
+		</RowTemplate>
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+}
+
+
+@code {
+	private List<User> members = new List<User>();
+	UpdatedUserDto userToUpdate = new UpdatedUserDto();
+	User userToEdit = new User();
+	int userId;
+	bool editUser = false;
+	string message;
+	string searchText;
+
+	private async Task SearchForMembers()
+	{
+		if (searchText != null || searchText != "")
+		{
+			var result = await UserManager.GetUsersBySearch(searchText);
+			if (result == null || result.Count == 0)
+			{
+				message = "No member found";
+				members = new();
+			}
+			else
+			{
+				members = result.Where(u => u.UserRole.Equals(UserRole.Member)).ToList();
+				message = null;
+			}
+		}
+	}
+
+	private void EditUser(User user)
+	{
+		userToUpdate.FirstName = user.FirstName;
+		userToUpdate.LastName = user.LastName;
+		userToUpdate.IsActive = user.IsActive;
+		userToUpdate.UserRole = UserRole.Member;
+		userToEdit = user;
+		userId = user.Id;
+		editUser = true;
+	}
+
+	private async Task UpdateUser()
+	{
+		editUser = false;
+		await UserManager.UpdateUserinformation(userToUpdate, userId);
+		message = "Updated";
+
+		if (searchText != null || searchText != "")
+		{
+			var result = await UserManager.GetUsersBySearch(searchText);
+			if (result == null || result.Count == 0)
+			{
+				message = "No member found";
+				members = new();
+			}
+			else
+			{
+				members = result.Where(u => u.UserRole.Equals(UserRole.Member)).ToList();
+				message = null;
+			}
+		}
+	}
+
+	protected async Task KeywordEnterPressed(KeyboardEventArgs eventArgs)
+	{
+		if (eventArgs.Key == null || eventArgs.Key.Equals("Enter"))
+		{
+			SearchForMembers();
+		}
+	}
+
+	public async Task DeleteMember(int id)
+    {
+		var parameters = new DialogParameters();
+		parameters.Add("ContentText", "Are you sure you want to delete member? This cannot be undone.");
+		parameters.Add("ButtonText", "Delete");
+		parameters.Add("Color", Color.Error);
+		parameters.Add("Id", id);
+
+		var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+		var dialog = DialogService.Show<Pages.DeleteUser>("Delete Member", parameters, options);
+
+		var result = await dialog.Result;
+		if (!result.Cancelled)
+		{
+			members = await UserManager.GetMembers();
+		}
+	}
+
+	public async Task HandleSearchMembers(KeyboardEventArgs args)
+    {
+        if (args.Key == null || args.Key.Equals("Enter"))
+        {
+            SearchForMembers();
+        }
+    }
+}

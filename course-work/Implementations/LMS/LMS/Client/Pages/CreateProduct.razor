@@ -1,0 +1,171 @@
+﻿@page "/createproduct"
+@inject IProductManager ProductManager
+@inject ICategoryManager CategoryManager
+
+<MudGrid>
+    <MudItem xs="10" sm="8">
+        <MudPaper Class="pa-4">
+            <MudForm Model=Product>
+                <MudCardHeader>
+                    <h5>Product Details</h5>
+                </MudCardHeader>
+                <MudCardContent Class="pa-0">
+                    <MudTable Items="@Product.Creators" Elevation="0" Breakpoint="Breakpoint.Sm">
+                        <RowTemplate>
+                            <MudTd Datalabel="FirstName">
+                                <MudForm Model="@context">
+                                    <MudTextField @bind-Value="context.FirstName"
+                                                  For="@(() => context.FirstName)"
+                                                  Label="Creator's First Name" />
+                                </MudForm>
+                            </MudTd>
+                            <MudTd Datalabel="LastName">
+                                <MudForm Model="@context">
+                                    <MudTextField @bind-Value="context.LastName"
+                                                  For="@(() => context.LastName)"
+                                                  Label="Creator's Last Name" />
+                                </MudForm>
+                            </MudTd>
+                            @if (CreatorCounter != 0)
+                            {
+                                <MudTd Datalabel="RemoveCreator">
+                                    <MudForm Model="@context">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete" @onclick="() => RemoveCreator(context.Id)"></MudIconButton>
+                                    </MudForm>
+                                </MudTd>
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Class="ml-auto" @onclick="AddCreator">Add Additional Author</MudButton>
+                </MudCardActions>
+                <MudCardContent>
+                    <MudTextField @bind-Value="Product.Title"
+                                  For="@(() => Product.Title)"
+                                  Label="Title" />
+                    <MudTextField @bind-Value="Product.Published"
+                                  For="@(() => Product.Published)"
+                                  Label="Published" />
+                    <MudTextField @bind-Value="Product.NumberOfCopiesOwned"
+                                  For="@(() => Product.NumberOfCopiesOwned)"
+                                  Label="Number of Copies" />
+                    <MudSelect T="ProductType" Label="Type" @bind-Value="Product.Type" Placeholder="Select type" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="ProductType" Value="@ProductType.Book">@ProductType.Book.ToString()</MudSelectItem>
+                        <MudSelectItem T="ProductType" Value="@ProductType.Ebook">@ProductType.Ebook.ToString()</MudSelectItem>
+                        <MudSelectItem T="ProductType" Value="@ProductType.Movie">@ProductType.Movie.ToString()</MudSelectItem>
+                        <MudSelectItem T="ProductType" Value="@ProductType.Audiobook">@ProductType.Audiobook.ToString()</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect T="Category" Label="Select Genre" ToStringFunc="@convertFunc" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="CategoriesToAdd">
+                        @foreach (var category in Categories)
+                        {
+                            <MudSelectItem T="Category" Value="@category">@category.CategoryName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="RegisterProduct">Save</MudButton>
+                </MudCardActions>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.subtitle2">Added products</MudText>
+            <MudCardContent>
+                @foreach (var product in AddedProducts)
+                {
+                    <MudText Color="Color.Success">@product.Title</MudText>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="ClearAddedList">Clear List</MudButton>
+            </MudCardActions>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (message == "Product added")
+{
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
+}
+else if (message == "Please select at least one genre")
+{
+    <MudAlert Severity="Severity.Error">@message</MudAlert>
+}
+
+@code {
+    public Product Product { get; set; } = new();
+    public DateTime TodaysDate { get; set; } = DateTime.Now;
+    public List<Category> Categories { get; set; } = new();
+    static List<Product> AddedProducts = new();
+    string message;
+    private Category value { get; set; } = new();
+    private IEnumerable<Category> CategoriesToAdd { get; set; } = new HashSet<Category>();
+    private Func<Category, string> convertFunc = ci => ci.CategoryName;
+    public int CreatorCounter { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await CategoryManager.GetAllCategoriesAsync();
+        SetProductStartValue();
+    }
+
+    public async Task RegisterProduct()
+    {
+        if (CategoriesToAdd.Count() == 0)
+        {
+            message = "Please select at least one genre";
+        }
+        else
+        {
+            SetProductValues();
+            var result = await ProductManager.CreateProduct(Product);
+            if (result == null)
+            {
+                message = "";
+            }
+            else
+            {
+                AddedProducts.Add(Product);
+                message = result;
+            }
+            ClearForm();
+        }
+    }
+
+    void SetProductValues()
+    {
+        Product.Category.AddRange(CategoriesToAdd);
+    }
+
+    void ClearForm()
+    {
+        SetProductStartValue();
+    }
+
+    void AddCreator()
+    {
+        CreatorCounter++;
+        Product.Creators.Add(new Creator { });
+    }
+
+    void SetProductStartValue()
+    {
+        Product = new Product();
+        Product.Creators.Add(new Creator { });
+        Product.Published = TodaysDate;
+    }
+
+    void ClearAddedList()
+    {
+        AddedProducts = new();
+    }
+
+    void RemoveCreator(int id)
+    {
+        CreatorCounter--;
+        var creatorToRemove = Product.Creators.FirstOrDefault(c => c.Id == id);
+        Product.Creators.Remove(creatorToRemove);
+    }
+}

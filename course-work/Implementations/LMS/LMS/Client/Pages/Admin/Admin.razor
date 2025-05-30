@@ -1,0 +1,42 @@
+﻿@page "/admin"
+@attribute [Authorize(Roles = "Librarian, Admin")]
+@inject ISearchManager SearchManager
+@inject IUserManager UserManager
+@inject ILoanManager LoanManager
+
+<MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
+	<MudNavMenu Class="mud-width-full">
+		<MudText Typo="Typo.h6" Class="px-4">Admin</MudText>
+		<MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Menu</MudText>
+		<MudDivider Class="my-2" />
+		<MudNavLink Href="/reports" Icon="fas fa-chart-line">Reports</MudNavLink>
+		<MudNavGroup Title="Products" Icon="fas fa-cogs" Expanded="false">
+			<MudNavLink Href="/allproducts" Icon="fas fa-server">All Products</MudNavLink>
+			<MudNavLink Href="/createproduct" Icon="fas fa-server">Add Products</MudNavLink>
+			<MudNavLink Href="/returnproducts" Icon="phase fa-server">Return</MudNavLink>
+			<MudNavGroup Title="Categories" Icon="fas fa-cogs" Expanded="false">
+				<MudNavLink Href="/categories" Icon="fas fa-server">Categories</MudNavLink>
+			</MudNavGroup>
+		</MudNavGroup>
+		<MudNavGroup Title="Seminarium" Icon="fas fa-cogs" Expanded="false">
+			<MudNavLink Href="/seminar" Icon="fas fa-receipt">Upcoming seminar</MudNavLink>
+			<MudNavLink Href="/registerseminar" Icon="fas fa-receipt">Add seminar</MudNavLink>
+		</MudNavGroup>
+		<MudNavGroup Title="Employee" Icon="fas fa-users" Expanded="false">
+			<MudNavLink Href="/employees" Icon="@Icons.Filled.LibraryAdd" Match="NavLinkMatch.Prefix">Edit Employee</MudNavLink>
+			<MudNavLink Href="/searchemployee" Icon="fas fa-users" IconColor="Color.Success">Search Employee</MudNavLink>
+			<MudNavLink Href="/register" Icon="@Icons.Filled.LibraryAdd" Match="NavLinkMatch.Prefix">Registration Employee</MudNavLink>
+		</MudNavGroup>
+		<MudNavGroup Title="Members" Icon="fas fa-users" Expanded="false">
+			<MudNavLink Href="/members" Icon="fas fa-users" IconColor="Color.Success">All Members</MudNavLink>
+			<MudNavLink Href="/searchmember" Icon="fas fa-users" IconColor="Color.Success">Search Members</MudNavLink>
+			<MudNavLink Href="/register" Icon="fas fa-users" IconColor="Color.Success">Register Member</MudNavLink>
+		</MudNavGroup>
+	</MudNavMenu>
+</MudPaper>
+
+
+@code {
+
+
+}

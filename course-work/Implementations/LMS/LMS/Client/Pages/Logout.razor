@@ -1,0 +1,52 @@
+﻿@page "/logout"
+@inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
+@inject IUserManager UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+
+<section class="vh-100 gradient-custom">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card bg text-white" style="border-radius: 1rem; background-color:DodgerBlue;">
+                    <div class="card-body p-5 text-center">
+
+                        <div class="mb-md-5 mt-md-4 pb-5">
+
+                            <h2 class="fw-bold mb-2 text-uppercase">Log out</h2>
+                            <p class="text-50 mb-5" style="color:#f7f9fa;">Are you sure you want to log out?</p>
+
+                            <div class="form-outline form-white mb-4">
+                                <button @onclick=HandleLogout class="form-control">Yes</button>
+
+                            </div>
+
+                            <div class="form-outline form-white mb-4">
+                                <button @onclick=StayLoggedIn class="form-control">No</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private async void HandleLogout()
+    {
+        var result = LocalStorage.RemoveItemAsync("authToken");
+        var result2 = LocalStorage.RemoveItemAsync("email");
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async void StayLoggedIn()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

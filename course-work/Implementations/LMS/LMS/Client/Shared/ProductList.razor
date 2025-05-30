@@ -1,0 +1,133 @@
+﻿@page "/ProductList"
+@inject ILocalStorageService localStorage;
+@inject ISearchManager SearchManager
+@inject ILoanManager LoanManager
+@inject IProductManager ProductManager
+@inject IUserManager UserManager
+@inject IProductCopyManager ProductCopyManager
+@implements IDisposable
+
+
+@if (SearchManager.Products == null)
+{
+    <h4>Loading...</h4>
+}
+else if (SearchManager.Products.Count == 0)
+{
+    <h4>No products found</h4>
+}
+else
+{
+<MudTable Context="product" Items="@SearchManager.Products">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Products</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh></MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Author</MudTh>
+        <MudTh>Published</MudTh>
+        <MudTh>Genre</MudTh>
+        <MudTh>Type</MudTh>
+        <AuthorizeView Roles="Admin, Librarian">
+            <MudTh>Number of copies</MudTh>
+        </AuthorizeView>
+
+    </HeaderContent>
+    <RowTemplate>
+        <MudImage Src="images/harry-potter-and-the-goblet-of-fire-5.jpg" Class="rounded-lg ma-4" Height="110" Alt="Book" />
+        <MudTd DataLabel="Title"><a href="ProductById/@product.Id">@product.Title</a></MudTd>
+        @if (@product.Creators != null)
+        {
+            @foreach (var creator in @product.Creators)
+            {
+                <MudTd DataLabel="Creator">
+                    @creator.FirstName @creator.LastName
+                </MudTd>
+            }
+        }
+
+        <MudTd DataLabel="Published">@product.Published.ToString("yyyy/MM/dd")</MudTd>
+        @if (product.Category.Count > 1)
+        {
+            <MudTd DataLabel="Genre">
+                etc
+            </MudTd>
+        }
+        else
+        {
+        @foreach (var category in @product.Category)
+        {
+            <MudTd DataLabel="Genre">
+                @category.CategoryName
+            </MudTd>
+        }
+        }
+        <MudTd DataLabel="Type">@product.Type</MudTd>
+        <AuthorizeView Roles="Admin, Librarian">
+            <MudTd>@product.NumberOfCopiesOwned</MudTd>
+        </AuthorizeView>
+        <AuthorizeView Roles="Member">
+            @if (AvailableLoans.Count == 0)
+            {
+                <MudTd>
+                    <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not Available</MudButton>
+                </MudTd>
+            }
+            else if (!AvailableLoans.Any(l => l.Id == product.Id))
+            {
+                <MudTd>
+                    <MudButton Disabled Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Not Available</MudButton>
+                </MudTd>
+            }
+            else
+            {
+            @foreach (var availableProduct in AvailableLoans)
+            {
+                @if (availableProduct.Id == product.Id)
+                {
+                    <MudTd>
+                        <MudButton @onclick="() => LoanProduct(product.Id)">Loan</MudButton>
+                    </MudTd>
+                }
+            }
+            }
+        </AuthorizeView>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+}
+
+
+@code {
+    public int Id { get; set; }
+    public List<Product> AvailableLoans { get; set; } = new();
+    public User CurrentUser { get; set; }
+    private bool isAvailable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await localStorage.GetItemAsync<string>("email");
+        if (userEmail != null)
+        {
+            CurrentUser = await UserManager.GetUserByEmail(userEmail);
+        }
+        AvailableLoans = await ProductCopyManager.GetAllLoans();
+        SearchManager.ProductsChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        SearchManager.ProductsChanged -= StateHasChanged;
+    }
+
+    public async Task LoanProduct(int productId)
+    {
+        LoanManager.AddLoan(productId, CurrentUser.Id);
+    }
+
+}
+

@@ -33,7 +33,7 @@ LibraryManagementSystem
 - 📅 View upcoming seminars by topic and date
 - 🎯 Advanced search   
 - ↕️ Sort and paginate book listings  
-- 📊 View available copies 
+- 📊 View available copies and ratings of loans and users
 - 📅 Reserve product online  
 
 ### 🔒 For Admins Only

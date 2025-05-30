@@ -1,56 +1,116 @@
-Library Management System
-🔹 Introduction
-The goal of this course project is to design and implement a full-featured library management system that facilitates both administrative and user interactions. The system is composed of two major components:
-1.	Back-end – implemented as a RESTful Web API using ASP.NET Core
-2.	Front-end – implemented with Blazor
-The application aims to support essential library functionalities such as book browsing, reservations, track penalties.
-🔹 System Architecture and Technologies
-•	Back-end: ASP.NET Core Web API
-•	Front-end: Blazor
-•	Database: SQL Server using Entity Framework Core (Code-First approach)
-•	Authentication: JWT Tokens
-•	Object Mapping: AutoMapper
-•	Validation: Data Annotations + FluentValidation
-🔹 Core Functionalities
-✅ For All Users:
-•	Browse books by title, author, or genre
-•	Search using multiple filters (e.g., author + genre)
-•	Sort and paginate book listings
-•	View available copies and book ratings
-•	Submit and view reviews
-•	Reserve books online
-•	Scan entry codes to instantly display book info
-🔒 For Admins Only:
-•	Full CRUD access to:
-o	Users
-o	Books
-o	Authors
-o	Genres
-o	Reservations
-o	Reviews
-o	Penalties
-•	Manage available copies
-•	Assign roles and handle penalty payments
-🔹 Database Design Requirements
-The project follows a Code-First approach with the following requirements fulfilled:
-User, Book, Author, Genre, Reservation, Penalty
-•	Each table has:
-o	6 or more columns
-o	At least 4 different data types (int, string, DateTime, bool, double)
-o	Mandatory fields (e.g., Title, ReservationDate)
-o	Text constraints (e.g., MaxLength(100))
-🔹 Security and Validation
-•	Full JWT-based authentication and authorization
-•	Role-based access (e.g., Admin vs. Regular User)
-•	Form and API validation using both:
-o	DataAnnotations (server-side)
-o	FluentValidation (complex rules)
-•	Client-side input validation with feedback
-•	📷 Book image uploads and previews
-🔹 Folder Structure
-LibraryManagementSystem/
-├── Client/          # Blazor Frontend
-├── Server/          # ASP.NET Core Backend
-├── BaseLibrary/     # Shared Entities, DTOs, Mapping Profiles, Responses
+# 📚 Library Management System
 
+A full-featured Library Management System designed as a course project to support both administrative and user interactions. The system provides RESTful API services with ASP.NET Core and a Blazor-based front-end for a seamless user experience. 
+A member can take products (books, films, audiobooks), return them. The admin registers new employees, confirms the return of books, creates seminars, products, edits and deletes users, makes their accounts inactive and etc. A employee can regulate books and seminars.
+
+---
+## 🔧 Tech Stack
+
+| Layer        | Technology                        |
+|--------------|------------------------------------|
+| Back-end     | ASP.NET Core Web API               |
+| Front-end    | Blazor                             |
+| Database     | SQL Server + Entity Framework Core (Code-First) |
+| Auth         | JWT Tokens                         |
+| Validation   | Data Annotations + FluentValidation |
+
+---
+
+## 🏗️ System Architecture
+
+LibraryManagementSystem/
+├── Client/ # Blazor Frontend
+├── Server/ # ASP.NET Core Backend
+├── Shared/ # Shared Entities, DTOs, Responses
+
+---
+
+## 🚀 Features
+
+### ✅ For All Users
+
+- 🔍 Browse products by title, author, or genre
+- 📅 View upcoming seminars by topic and date
+- 🎯 Advanced search   
+- ↕️ Sort and paginate book listings  
+- 📊 View available copies 
+- 📅 Reserve product online  
+
+### 🔒 For Admins Only
+
+- ⚙️ Full CRUD for:
+  - Users
+  - Products
+  - Creators
+  - Genres
+  - Loans
+  - Seminars
+- 📦 Manage available copies
+- 🧑‍⚖️ Assign roles
+
+---
+
+## 🗃️ Database Requirements
+- Code-First approach with the following entities:
+  - `User`, `Product`, `Creator`, `Category`, `Loan`, `Seminar`
+- Each entity includes:
+  - ➕ 6+ columns
+  - 🔢 4+ data types (`int`, `string`, `DateTime`, `bool`, `double`, (`enums` and `IEnumerables`))
+  - ✅ Requirement fields (e.g., `Title`, `LoanDate`, `Email`)
+  - 🔡 Constraints like `MaxLength(100)`
+---
+
+## 🔐 Security & Validation
+- 🔑 JWT-based authentication and role-based authorization
+- ✅ Server-side validation:
+  - Data Annotations
+- ⚠️ Client-side validation with live feedback
+
+---
+
+## 📌 Project Goals
+This project demonstrates:
+- Building scalable full-stack applications
+- Secure and validated REST API development
+- Clean separation between front-end and back-end logic
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+## 🧠 Coming Soon
+
+🚀 Future updates will include the following features:
+
+### 📊 Smart Recommendations
+- 🤖 Personalized recommendations powered by machine learning:
+  - Based on user interests, reservation history, genres, and reviews
+
+### 📄 Materials & Documents
+- 📥 Upload and download PDF files:
+  - Presentations and resources for seminars
+  - Reservation information
+
+### ✉️ Email Notifications
+- 📬 Email alerts for:
+  - Reservation confirmations
+  - Upcoming seminars
+  - Overdue returns
+- 🔐 Email verification for registration and password recovery
+
+### 🛠 Enhanced Features
+- 📷 Improved book image uploads and preview
+- ✍️ Enhanced review and rating system
+- 🔎 Scan QR or barcodes to instantly retrieve product information
+
+### ⚖️ Advanced Penalty System
+- 💰 Automatic registration of penalties due to:
+  - 📕 Lost products
+  - 📉 Damaged products
+  - ⏰ Late returns
 
